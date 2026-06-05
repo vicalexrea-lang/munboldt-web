@@ -1,0 +1,257 @@
+---
+interface Props {
+  id: string;
+  nombre: string;
+  siglas: string;
+  tema: string;
+  videoId: string;
+  paises: string[];
+  mesa_directiva?: {
+    presidente: string;
+    secretario: string;
+    moderador: string;
+  };
+}
+const { id, nombre, siglas, tema, videoId, paises, mesa_directiva } = Astro.props;
+---
+
+<article class="comite-card" id={id}>
+  <a href={`/comites/${id}`} class="card-link-overlay" aria-label={`Ver más — ${nombre} (${siglas})`}></a>
+
+  <!-- Placeholder visual header -->
+  <div class="card-visual">
+    <span class="card-siglas-bg" aria-hidden="true">{siglas}</span>
+    <div class="card-siglas-badge">{siglas}</div>
+  </div>
+
+  <!-- Content -->
+  <div class="card-content">
+
+    <h3 class="card-nombre">{nombre}</h3>
+
+    {tema && (
+      <div class="card-section">
+        <p class="card-label" data-i18n="card.temaDebate">Tema de debate</p>
+        <p class="card-tema">{tema}</p>
+      </div>
+    )}
+
+    {videoId && (
+      <div class="video-wrapper">
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title={`Video ${nombre}`}
+          frameborder="0"
+          allowfullscreen
+        />
+      </div>
+    )}
+
+    <!-- Mesa directiva -->
+    <div class="card-section">
+      <p class="card-label" data-i18n="card.mesaDirectiva">Mesa Directiva</p>
+      <table class="mesa-table">
+        <tr>
+          <td class="mesa-rol" data-i18n="card.presidente">Presidente</td>
+          <td class="mesa-nombre">
+            {mesa_directiva?.presidente ?? <span data-i18n="card.porConfirmar">Por confirmar</span>}
+          </td>
+        </tr>
+        <tr>
+          <td class="mesa-rol" data-i18n="card.secretario">Secretario</td>
+          <td class="mesa-nombre">
+            {mesa_directiva?.secretario ?? <span data-i18n="card.porConfirmar">Por confirmar</span>}
+          </td>
+        </tr>
+        <tr>
+          <td class="mesa-rol" data-i18n="card.moderador">Moderador</td>
+          <td class="mesa-nombre">
+            {mesa_directiva?.moderador ?? <span data-i18n="card.porConfirmar">Por confirmar</span>}
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Países -->
+    {paises.length > 0 && (
+      <div class="card-section">
+        <p class="card-label" data-i18n="card.paisesParticipantes" data-i18n-count={paises.length}>Países participantes ({paises.length})</p>
+        <ul class="paises-list">
+          {paises.map((p) => <li>{p}</li>)}
+        </ul>
+      </div>
+    )}
+
+    <a href={`/comites/${id}`} class="card-cta">
+      <span data-i18n="card.verMas">Ver más</span>
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+      </svg>
+    </a>
+
+  </div>
+</article>
+
+<style>
+  .comite-card {
+    background: var(--white);
+    border: 1px solid var(--gray-mid);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .comite-card:hover {
+    box-shadow: 0 12px 36px rgba(0, 63, 135, 0.15), inset 4px 0 0 0 #B8A96A;
+    transform: translateY(-4px);
+  }
+
+  /* ── Full-card link overlay (whole card is clickable) ── */
+  .card-link-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    cursor: pointer;
+  }
+
+  /* ── Visual header placeholder ── */
+  .card-visual {
+    background: var(--gray-bg);
+    height: 160px;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 1.25rem 1.5rem;
+    overflow: hidden;
+    border-top: 3px solid var(--un-blue);
+  }
+  .card-siglas-bg {
+    position: absolute;
+    right: -0.1em;
+    bottom: -0.15em;
+    font-family: 'Playfair Display', serif;
+    font-size: 7rem;
+    font-weight: 900;
+    color: rgba(0, 63, 135, 0.07);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    user-select: none;
+    pointer-events: none;
+  }
+  .card-siglas-badge {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.75rem;
+    border-radius: 2px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── Content ── */
+  .card-content {
+    padding: 1.75rem 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    flex: 1;
+  }
+  .card-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1.3;
+  }
+  .card-section { display: flex; flex-direction: column; gap: 0.5rem; }
+  .card-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--un-blue);
+  }
+  .card-tema {
+    font-size: 0.92rem;
+    color: var(--text);
+    line-height: 1.65;
+  }
+
+  /* Mesa directiva */
+  .mesa-table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .mesa-table tr + tr { border-top: 1px solid var(--gray-mid); }
+  .mesa-rol {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    padding: 0.4rem 0.75rem 0.4rem 0;
+    white-space: nowrap;
+    width: 90px;
+    vertical-align: top;
+  }
+  .mesa-nombre {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+    padding: 0.4rem 0;
+    vertical-align: top;
+  }
+
+  /* Países */
+  .paises-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .paises-list li {
+    font-size: 0.83rem;
+    color: var(--text);
+    padding: 0.1rem 0;
+    border-bottom: 1px solid var(--gray-bg);
+  }
+  .paises-list li:last-child { border-bottom: none; }
+
+  /* YouTube */
+  .video-wrapper {
+    position: relative;
+    z-index: 2;
+    padding-bottom: 56.25%;
+    height: 0;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .video-wrapper iframe {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+  }
+
+  /* CTA */
+  .card-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    font-weight: 500;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--gray-mid);
+    transition: color 0.2s, gap 0.2s;
+    position: relative;
+    z-index: 2;
+  }
+  .card-cta svg { width: 12px; height: 12px; }
+  .card-cta:hover { color: var(--un-blue); gap: 0.6rem; }
+</style>

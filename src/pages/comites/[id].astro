@@ -1,0 +1,319 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Navbar from '../../components/Navbar.astro';
+import comites from '../../data/comites.json';
+
+export function getStaticPaths() {
+  return comites.map((c) => ({
+    params: { id: c.id },
+    props: { comite: c },
+  }));
+}
+
+interface Comite {
+  id: string;
+  nombre: string;
+  siglas: string;
+  idioma: string;
+  categoria: string;
+  tema: string;
+  videoId: string;
+  paises: string[];
+}
+
+const { comite } = Astro.props as { comite: Comite };
+const { id, nombre, siglas, tema, paises } = comite;
+const pdfHref = `/backgrounds/${id}-background.pdf`;
+---
+
+<Layout title={`${nombre} (${siglas}) — MUNBOLDT 2027`}>
+  <Navbar />
+
+  <main class="comite-page">
+    <div class="page-inner">
+
+      <a href="/#comites" class="back-link">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+        </svg>
+        <span data-i18n="comite.volver">Volver a Comités</span>
+      </a>
+
+      <header class="comite-header">
+        <p class="comite-siglas">{siglas}</p>
+        <h1 class="comite-nombre">{nombre}</h1>
+        {tema
+          ? <p class="comite-tema">{tema}</p>
+          : <p class="comite-tema is-pending" data-i18n="comite.temaPendiente">Tema de debate — por anunciar</p>}
+      </header>
+
+      <!-- ───────── Mesa Directiva ───────── -->
+      <section class="comite-section">
+        <h2 class="section-title" data-i18n="card.mesaDirectiva">Mesa Directiva</h2>
+        <p class="section-desc" data-i18n="comite.mesaDesc" data-i18n-vars={`{"sig":"${siglas}"}`}>
+          Presentamos la estructura de la mesa directiva de {siglas}. Las fotografías y nombres
+          se publicarán conforme se confirmen las y los integrantes del equipo.
+        </p>
+        <div class="mesa-grid">
+          <article class="mesa-card">
+            <div class="mesa-photo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.76-3.58-5-8-5z"/>
+              </svg>
+            </div>
+            <p class="mesa-rol" data-i18n="card.presidente">Presidente</p>
+            <p class="mesa-nombre" data-i18n="card.porConfirmar">Por confirmar</p>
+          </article>
+          <article class="mesa-card">
+            <div class="mesa-photo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.76-3.58-5-8-5z"/>
+              </svg>
+            </div>
+            <p class="mesa-rol" data-i18n="card.secretario">Secretario</p>
+            <p class="mesa-nombre" data-i18n="card.porConfirmar">Por confirmar</p>
+          </article>
+          <article class="mesa-card">
+            <div class="mesa-photo" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10zm0 2c-4.42 0-8 2.24-8 5v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-2.76-3.58-5-8-5z"/>
+              </svg>
+            </div>
+            <p class="mesa-rol" data-i18n="card.moderador">Moderador</p>
+            <p class="mesa-nombre" data-i18n="card.porConfirmar">Por confirmar</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ───────── Background Guide ───────── -->
+      <section class="comite-section">
+        <h2 class="section-title" data-i18n="comite.bgGuide.title">Background Guide</h2>
+        <p class="section-desc" data-i18n="comite.bgGuide.desc" data-i18n-vars={`{"sig":"${siglas}"}`}>
+          Consulta la guía de trabajo oficial de {siglas}: contexto histórico, temas clave,
+          posiciones de bloque y las preguntas que tu resolución deberá responder. Tómala como
+          punto de partida — tu propia investigación hará la diferencia en comité.
+        </p>
+        <div class="pdf-embed">
+          <iframe src={pdfHref} title={`Background Guide — ${nombre}`} loading="lazy"></iframe>
+        </div>
+        <a href={pdfHref} class="pdf-download" download>
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+            <path d="M7.5 10.293V1.5a.5.5 0 0 1 1 0v8.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293z"/>
+          </svg>
+          <span data-i18n="comite.bgGuide.download">Descargar Background Guide (PDF)</span>
+        </a>
+      </section>
+
+      <!-- ───────── Países participantes ───────── -->
+      <section class="comite-section">
+        <h2 class="section-title" data-i18n="comite.paises.title">Países Participantes</h2>
+        {paises.length > 0 ? (
+          <ul class="paises-list">
+            {paises.map((p: string) => <li>{p}</li>)}
+          </ul>
+        ) : (
+          <p class="empty-note" data-i18n="comite.paises.empty">La lista de países participantes se publicará próximamente.</p>
+        )}
+      </section>
+
+      <a href="/#comites" class="back-link back-link--bottom">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+        </svg>
+        <span data-i18n="comite.volver">Volver a Comités</span>
+      </a>
+
+    </div>
+  </main>
+</Layout>
+
+<style>
+  .comite-page {
+    background: var(--white);
+    min-height: 100vh;
+    padding: 7.5rem 2rem 5rem;
+  }
+  .page-inner {
+    max-width: 880px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+  }
+
+  /* ── Back link ── */
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    align-self: flex-start;
+    color: var(--un-blue);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s, gap 0.2s;
+  }
+  .back-link svg { width: 15px; height: 15px; }
+  .back-link:hover { color: var(--navy); gap: 0.85rem; }
+  .back-link--bottom { align-self: center; }
+
+  /* ── Header ── */
+  .comite-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-bottom: 2.5rem;
+    border-bottom: 1px solid var(--gray-mid);
+  }
+  .comite-siglas {
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .comite-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4.5vw, 3.2rem);
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.15;
+  }
+  .comite-tema {
+    font-size: 1.05rem;
+    color: var(--text);
+    line-height: 1.65;
+    max-width: 60ch;
+    margin-top: 0.4rem;
+  }
+  .comite-tema.is-pending {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Generic section scaffolding ── */
+  .comite-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .section-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 68ch;
+  }
+  .empty-note {
+    font-size: 0.92rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Mesa Directiva ── */
+  .mesa-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .mesa-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.65rem;
+  }
+  .mesa-photo {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background: var(--gray-bg);
+    border: 1px solid var(--gray-mid);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gray-mid);
+  }
+  .mesa-photo svg { width: 38%; height: 38%; }
+  .mesa-rol {
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-top: 0.4rem;
+  }
+  .mesa-nombre {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* ── Background Guide / PDF embed ── */
+  .pdf-embed {
+    width: 100%;
+    height: 70vh;
+    min-height: 420px;
+    border: 1px solid var(--gray-mid);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--gray-bg);
+  }
+  .pdf-embed iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .pdf-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    align-self: flex-start;
+    background: var(--navy);
+    color: #fff;
+    padding: 0.8rem 1.6rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: background 0.25s, transform 0.25s;
+  }
+  .pdf-download svg { width: 15px; height: 15px; }
+  .pdf-download:hover { background: var(--un-blue); transform: translateY(-2px); }
+
+  /* ── Países ── */
+  .paises-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.5rem 1.5rem;
+  }
+  .paises-list li {
+    font-size: 0.92rem;
+    color: var(--text);
+    padding: 0.45rem 0;
+    border-bottom: 1px solid var(--gray-bg);
+  }
+
+  @media (max-width: 720px) {
+    .comite-page { padding: 6.5rem 1.25rem 4rem; }
+    .mesa-grid { grid-template-columns: repeat(3, 1fr); gap: 0.85rem; }
+    .mesa-rol { font-size: 0.7rem; }
+    .mesa-nombre { font-size: 0.76rem; }
+    .pdf-embed { height: 56vh; }
+  }
+  @media (max-width: 480px) {
+    .mesa-grid { grid-template-columns: 1fr 1fr 1fr; }
+  }
+</style>

@@ -1,0 +1,569 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import GloboHero from '../components/GloboHero.astro';
+import ComiteCard from '../components/ComiteCard.astro';
+import comites from '../data/comites.json';
+
+const enComites = comites.filter(c => c.idioma === 'en' && c.categoria === 'regular');
+const esComites = comites.filter(c => c.idioma === 'es');
+const deComites = comites.filter(c => c.idioma === 'de');
+const jrComites = comites.filter(c => c.categoria === 'junior');
+---
+
+<Layout title="MUNBOLDT 2027">
+  <Navbar />
+  <GloboHero />
+
+  <!-- ─── COMITÉS ─── -->
+  <section id="comites" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-i18n="comites.tag">Edición 2027</span>
+        <h2 class="section-title" data-i18n="comites.title">Comités</h2>
+        <p class="section-desc" data-i18n="comites.desc">
+          Conoce los comités de esta edición, sus temas y los países participantes.
+        </p>
+      </div>
+
+      <!-- Buscador -->
+      <div class="search-wrapper">
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+          </svg>
+          <input
+            type="text"
+            id="buscador"
+            class="search-input"
+            data-i18n-ph="comites.search"
+            placeholder="Buscar comité, tema o país..."
+            autocomplete="off"
+          />
+          <button class="search-clear" id="searchClear" style="display:none" aria-label="Limpiar" data-i18n-aria="comites.searchClear">✕</button>
+        </div>
+        <span class="search-hint" id="searchHint"></span>
+      </div>
+
+      <!-- ── English Committees ── -->
+      <div class="comite-group group-en" data-group="en">
+        <div class="group-header">
+          <div class="group-info">
+            <h3 class="group-title" data-i18n="group.en.title">English Committees</h3>
+            <span class="group-meta" data-i18n="group.en.meta" data-i18n-count={enComites.length}>Conducted in English · {enComites.length} committees</span>
+          </div>
+          <span class="group-badge">{enComites.length}</span>
+        </div>
+        <div class="comites-grid">
+          {enComites.map((c) => (
+            <ComiteCard id={c.id} nombre={c.nombre} siglas={c.siglas}
+              tema={c.tema} videoId={c.videoId} paises={c.paises} />
+          ))}
+        </div>
+      </div>
+
+      <!-- ── Comités en Español ── -->
+      <div class="comite-group group-es" data-group="es">
+        <div class="group-header">
+          <div class="group-info">
+            <h3 class="group-title" data-i18n="group.es.title">Comités en Español</h3>
+            <span class="group-meta" data-i18n="group.es.meta" data-i18n-count={esComites.length}>Se realizan en español · {esComites.length} comités</span>
+          </div>
+          <span class="group-badge">{esComites.length}</span>
+        </div>
+        <div class="comites-grid">
+          {esComites.map((c) => (
+            <ComiteCard id={c.id} nombre={c.nombre} siglas={c.siglas}
+              tema={c.tema} videoId={c.videoId} paises={c.paises} />
+          ))}
+        </div>
+      </div>
+
+      <!-- ── Deutsche Ausschüsse ── -->
+      <div class="comite-group group-de" data-group="de">
+        <div class="group-header">
+          <div class="group-info">
+            <h3 class="group-title" data-i18n="group.de.title">Comités en Alemán</h3>
+            <span class="group-meta" data-i18n="group.de.meta" data-i18n-count={deComites.length}>Se imparten en alemán · {deComites.length} comités</span>
+          </div>
+          <span class="group-badge">{deComites.length}</span>
+        </div>
+        <div class="comites-grid">
+          {deComites.map((c) => (
+            <ComiteCard id={c.id} nombre={c.nombre} siglas={c.siglas}
+              tema={c.tema} videoId={c.videoId} paises={c.paises} />
+          ))}
+        </div>
+      </div>
+
+      <!-- ── Junior Committees ── -->
+      <div class="comite-group group-jr" data-group="jr">
+        <div class="group-header">
+          <div class="group-info">
+            <h3 class="group-title" data-i18n="group.jr.title">Comités Junior</h3>
+            <span class="group-meta" data-i18n="group.jr.meta" data-i18n-count={jrComites.length}>Para delegados principiantes · {jrComites.length} comités</span>
+          </div>
+          <span class="group-badge">{jrComites.length}</span>
+        </div>
+        <div class="comites-grid">
+          {jrComites.map((c) => (
+            <ComiteCard id={c.id} nombre={c.nombre} siglas={c.siglas}
+              tema={c.tema} videoId={c.videoId} paises={c.paises} />
+          ))}
+        </div>
+      </div>
+
+      <p id="noResultados" class="no-resultados" style="display:none" data-i18n="comites.noResults">No se encontraron resultados.</p>
+    </div>
+  </section>
+
+  <!-- ─── REGISTRO ─── -->
+  <section id="registro" class="section section-alt">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-i18n="registro.tag">Únete</span>
+        <h2 class="section-title" data-i18n="registro.title">Registro de Delegados</h2>
+        <p class="section-desc" data-i18n="registro.desc">
+          Completa el formulario para registrar tu participación.
+        </p>
+      </div>
+      <form class="registro-form" id="registroForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i18n="form.nombre">Nombre completo</label>
+            <input type="text" name="nombre" data-i18n-ph="form.nombre.ph" placeholder="Tu nombre completo" required />
+          </div>
+          <div class="form-group">
+            <label data-i18n="form.escuela">Escuela</label>
+            <input type="text" name="escuela" data-i18n-ph="form.escuela.ph" placeholder="Nombre de tu escuela" required />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label data-i18n="form.correo">Correo electrónico</label>
+            <input type="email" name="correo" placeholder="tu@correo.com" required />
+          </div>
+          <div class="form-group">
+            <label data-i18n="form.comite">Comité de interés</label>
+            <select name="comite" required>
+              <option value="" data-i18n="form.comite.ph">Selecciona un comité</option>
+              {comites.map((c) => (
+                <option value={c.id}>{c.siglas} — {c.nombre}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn-submit" data-i18n="form.submit">Enviar Registro</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ─── HIGH COMMAND ─── -->
+  <section id="contacto" class="section">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag" data-i18n="hc.tag">Organización</span>
+        <h2 class="section-title" data-i18n="hc.title">High Command</h2>
+        <p class="section-desc" data-i18n="hc.desc">El equipo detrás de MUNBOLDT 2027.</p>
+      </div>
+
+      <div class="hc-grid">
+        <div class="hc-card">
+          <div class="hc-photo-wrap">
+            <img src="/team/advisor.jpg" alt="Avid" class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Avid</p>
+          <p class="hc-cargo" data-i18n="hc.role.advisor">Advisor</p>
+        </div>
+        <div class="hc-card">
+          <div class="hc-photo-wrap">
+            <img src="/team/pyotr.jpg" alt="Pyotr Cobos" class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Pyotr Cobos</p>
+          <p class="hc-cargo" data-i18n="hc.role.generalSecretary">General Secretary</p>
+        </div>
+        <div class="hc-card">
+          <div class="hc-photo-wrap">
+            <img src="/team/emiliano.jpg" alt="Emiliano" class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Emiliano</p>
+          <p class="hc-cargo" data-i18n="hc.role.underSecretary">Under Secretary</p>
+        </div>
+        <div class="hc-card">
+          <div class="hc-photo-wrap">
+            <img src="/team/greta.jpg" alt="Greta C." class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Greta C.</p>
+          <p class="hc-cargo" data-i18n="hc.role.underSecretary">Under Secretary</p>
+        </div>
+        <div class="hc-card">
+          <div class="hc-photo-wrap hc-featured">
+            <img src="/team/victor.jpg" alt="Victor A. Rea Flores" class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Victor A. Rea Flores</p>
+          <p class="hc-cargo" data-i18n="hc.role.logisticsTreasury">Logistics · Treasury</p>
+        </div>
+        <div class="hc-card">
+          <div class="hc-photo-wrap">
+            <img src="/team/emma.jpg" alt="Emma S." class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Emma S.</p>
+          <p class="hc-cargo" data-i18n="hc.role.hospitality">Head of Hospitality</p>
+        </div>
+        <div class="hc-card">
+          <div class="hc-photo-wrap">
+            <img src="/team/jime.jpg" alt="Jime N." class="hc-photo" />
+          </div>
+          <p class="hc-nombre">Jime N.</p>
+          <p class="hc-cargo" data-i18n="hc.role.generalAssembly">Head of General Assembly</p>
+        </div>
+        <div class="hc-card hc-pending">
+          <div class="hc-photo-wrap hc-photo-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <p class="hc-nombre">Regina A.</p>
+          <p class="hc-cargo" data-i18n="hc.role.logistics">Head of Logistics</p>
+        </div>
+      </div>
+
+      <p class="contacto-email">munboldt2027@humboldt.edu.mx</p>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <p data-i18n="footer.copyright">© 2027 MUNBOLDT · Colegio Humboldt Puebla, México</p>
+      <p class="footer-credit" data-i18n="footer.credit">Desarrollado por Victor A. Rea Flores — Logistics & Treasury</p>
+    </div>
+  </footer>
+</Layout>
+
+<script>
+  /* ── Buscador ── */
+  const buscador = document.getElementById('buscador') as HTMLInputElement;
+  const noRes    = document.getElementById('noResultados');
+  const clearBtn = document.getElementById('searchClear');
+  const hint     = document.getElementById('searchHint');
+
+  function runSearch() {
+    const q = buscador.value.toLowerCase().trim();
+    let visible = 0;
+
+    // Filter individual cards
+    document.querySelectorAll<HTMLElement>('.comite-card').forEach((card) => {
+      const match = (card.textContent ?? '').toLowerCase().includes(q);
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+
+    // Hide/show group sections based on whether any card inside is visible
+    document.querySelectorAll<HTMLElement>('.comite-group').forEach((group) => {
+      const anyVisible = Array.from(
+        group.querySelectorAll<HTMLElement>('.comite-card')
+      ).some(c => c.style.display !== 'none');
+      group.style.display = anyVisible ? '' : 'none';
+    });
+
+    if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
+    if (clearBtn) clearBtn.style.display = q ? 'flex' : 'none';
+    if (hint) hint.textContent = q && visible > 0 ? `${visible} resultado${visible !== 1 ? 's' : ''}` : '';
+  }
+
+  buscador?.addEventListener('input', runSearch);
+  clearBtn?.addEventListener('click', () => { buscador.value = ''; runSearch(); buscador.focus(); });
+
+  /* ── Formulario ── */
+  const form = document.getElementById('registroForm') as HTMLFormElement;
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const btn = form.querySelector<HTMLButtonElement>('.btn-submit')!;
+    const orig = btn.textContent ?? 'Enviar';
+    const lang = localStorage.getItem('munboldt-lang') ?? 'es';
+    const successText = lang === 'de' ? '✓ Gesendet' : lang === 'en' ? '✓ Submitted' : '✓ Enviado';
+    btn.textContent = successText;
+    btn.style.background = '#22c55e';
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ''; form.reset(); }, 3000);
+  });
+</script>
+
+<style>
+  /* ── Secciones ── */
+  .section { padding: 6rem 2rem; }
+  .section-alt { background: var(--gray-bg); }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  .section-header { text-align: center; margin-bottom: 4rem; }
+  .section-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--un-blue);
+    margin-bottom: 0.75rem;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 2.8rem);
+    color: var(--navy);
+    margin-bottom: 1rem;
+    font-weight: 700;
+  }
+  .section-desc {
+    color: var(--text-muted);
+    max-width: 560px;
+    margin: 0 auto;
+    line-height: 1.75;
+    font-size: 0.95rem;
+  }
+
+  /* ── Buscador ── */
+  .search-wrapper {
+    max-width: 600px;
+    margin: 0 auto 3.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .search-box {
+    width: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .search-icon {
+    position: absolute;
+    left: 1rem;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .search-input {
+    width: 100%;
+    padding: 0.95rem 2.75rem 0.95rem 3rem;
+    border: 1px solid var(--gray-mid);
+    border-radius: 3px;
+    font-size: 0.95rem;
+    background: var(--white);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s;
+    font-family: 'Inter', sans-serif;
+  }
+  .search-input:focus {
+    border-color: var(--un-blue);
+    box-shadow: 0 0 0 3px rgba(0,158,219,0.1);
+  }
+  .search-input::placeholder { color: #9CA3AF; }
+  .search-clear {
+    position: absolute;
+    right: 0.85rem;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.72rem;
+    width: 20px;
+    height: 20px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s;
+  }
+  .search-clear:hover { background: var(--gray-bg); }
+  .search-hint { font-size: 0.75rem; color: var(--un-blue); font-weight: 500; min-height: 1em; }
+  .no-resultados { text-align: center; color: var(--text-muted); padding: 3rem; }
+
+  /* ── Committee groups ── */
+  .comite-group { margin-bottom: 4rem; }
+  .comite-group:last-of-type { margin-bottom: 0; }
+
+  .group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0 1rem 1.25rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--gray-mid);
+  }
+  /* Colored left accent per language */
+  .group-en .group-header { border-left: 4px solid #012169; }
+  .group-es .group-header { border-left: 4px solid #AA151B; }
+  .group-de .group-header { border-left: 4px solid #FFCE00; }
+  .group-jr .group-header { border-left: 4px solid #009EDB; }
+
+  .group-info { display: flex; flex-direction: column; gap: 0.2rem; }
+  .group-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .group-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+  .group-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    background: var(--gray-bg);
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  /* ── Comités grid ── */
+  .comites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.75rem;
+  }
+
+  /* ── Registro form ── */
+  .registro-form { max-width: 760px; margin: 0 auto; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.45rem; }
+  .form-group label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .form-group input,
+  .form-group select {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--gray-mid);
+    border-radius: 3px;
+    font-size: 0.92rem;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.25s;
+    font-family: 'Inter', sans-serif;
+  }
+  .form-group input:focus,
+  .form-group select:focus { border-color: var(--un-blue); }
+  .btn-submit {
+    width: 100%;
+    padding: 0.95rem;
+    background: var(--un-blue);
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.25s;
+    margin-top: 0.5rem;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-submit:hover { background: var(--navy); transform: translateY(-1px); }
+
+  /* ── High Command ── */
+  .hc-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+  }
+  .hc-card { display: flex; flex-direction: column; }
+  .hc-photo-wrap {
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 3px;
+    background: var(--gray-bg);
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .hc-featured {
+    outline: 3px solid var(--un-blue);
+    outline-offset: 3px;
+  }
+  .hc-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+    transition: transform 0.4s;
+  }
+  .hc-card:hover .hc-photo { transform: scale(1.04); }
+  .hc-photo-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hc-photo-placeholder svg {
+    width: 48px;
+    height: 48px;
+    color: var(--gray-mid);
+  }
+  .hc-pending { opacity: 0.55; }
+  .hc-nombre {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
+  }
+  .hc-cargo {
+    font-size: 0.74rem;
+    color: var(--un-blue);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .contacto-email {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    padding: 1rem 0;
+    border-top: 1px solid var(--gray-mid);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    background: var(--navy);
+    color: rgba(255,255,255,0.45);
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.8rem;
+    line-height: 1.6;
+  }
+  .footer-credit { color: var(--gold); font-size: 0.75rem; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1024px) {
+    .hc-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 768px) {
+    .form-row { grid-template-columns: 1fr; }
+    .comites-grid { grid-template-columns: 1fr; }
+    .hc-grid { grid-template-columns: repeat(2, 1fr); }
+    .footer-inner { flex-direction: column; text-align: center; }
+  }
+  @media (max-width: 480px) {
+    .section { padding: 4rem 1.25rem; }
+  }
+</style>

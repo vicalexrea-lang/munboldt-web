@@ -1,0 +1,162 @@
+[
+  {
+    "id": "ga",
+    "nombre": "General Assembly",
+    "siglas": "GA",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "sc",
+    "nombre": "Security Council",
+    "siglas": "SC",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "ecosoc",
+    "nombre": "Economic and Social Council",
+    "siglas": "ECOSOC",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "hsc",
+    "nombre": "Historical Security Council",
+    "siglas": "HSC",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "us-senate",
+    "nombre": "United States Senate",
+    "siglas": "U.S.",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "un-women",
+    "nombre": "UN Women",
+    "siglas": "UN Women",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "who",
+    "nombre": "World Health Organization",
+    "siglas": "WHO",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "esc",
+    "nombre": "Environmental Security Council",
+    "siglas": "ESC",
+    "idioma": "en",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "camara-diputados",
+    "nombre": "Cámara de Diputados",
+    "siglas": "CD-MX",
+    "idioma": "es",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "cepal",
+    "nombre": "Comisión Económica para América Latina y el Caribe",
+    "siglas": "CEPAL",
+    "idioma": "es",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "onu-mujeres",
+    "nombre": "ONU Mujeres",
+    "siglas": "ONU-M",
+    "idioma": "es",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "unesco",
+    "nombre": "Organización de las Naciones Unidas para la Educación, la Ciencia y la Cultura",
+    "siglas": "UNESCO",
+    "idioma": "es",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "bundestag",
+    "nombre": "Bundestag",
+    "siglas": "BT",
+    "idioma": "de",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "bundestag-historico",
+    "nombre": "Bundestag Histórico",
+    "siglas": "BT-H",
+    "idioma": "de",
+    "categoria": "regular",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "undrr",
+    "nombre": "United Nations Office for Disaster Risk Reduction",
+    "siglas": "UNDRR",
+    "idioma": "en",
+    "categoria": "junior",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  },
+  {
+    "id": "unicef",
+    "nombre": "United Nations Children's Fund",
+    "siglas": "UNICEF",
+    "idioma": "en",
+    "categoria": "junior",
+    "tema": "",
+    "videoId": "",
+    "paises": []
+  }
+]

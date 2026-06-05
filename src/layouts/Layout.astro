@@ -1,0 +1,49 @@
+---
+interface Props {
+  title?: string;
+}
+const { title = "MUNBOLDT 2027" } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --navy:       #1A3A5C;
+        --un-blue:    #4B9CD3;
+        --gold:       #B8A96A;
+        --white:      #FFFFFF;
+        --light-blue: #EBF4FB;
+        --gray-bg:    #EBF4FB;
+        --gray-mid:   #D6E4F0;
+        --text:       #2C2C2C;
+        --text-muted: #6B7280;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      /* `overflow-x: clip` (not `hidden`) — clips horizontal overflow WITHOUT
+         creating a scroll container, so `position: sticky` keeps sticking
+         relative to the real viewport (a non-visible overflow-x paired with
+         a visible overflow-y forces the latter to compute as `auto`, which
+         would otherwise break sticky positioning for the scroll-storytelling
+         hero). */
+      html { scroll-behavior: smooth; overflow-x: clip; }
+      body {
+        background-color: var(--white);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        overflow-x: clip;
+        -webkit-font-smoothing: antialiased;
+      }
+    </style>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

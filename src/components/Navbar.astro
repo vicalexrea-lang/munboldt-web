@@ -1,0 +1,634 @@
+---
+---
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+
+    <!-- Brand -->
+    <a href="/" class="nav-brand">
+      <img src="/logo-humboldt.webp" alt="Colegio Humboldt Puebla" class="logo-humboldt" />
+      <span class="brand-wordmark">MUNBOLDT <em>2027</em></span>
+    </a>
+
+    <!-- Links -->
+    <ul class="nav-links">
+      <li><a href="/"            data-i18n="nav.inicio">Inicio</a></li>
+      <li><a href="/#comites"    data-i18n="nav.comites">Comités</a></li>
+      <li><a href="/preparacion" data-i18n="nav.preparacion">Preparación</a></li>
+      <li><a href="/#registro"   data-i18n="nav.registro">Registro</a></li>
+      <li><a href="/#contacto"   data-i18n="nav.contacto">Contacto</a></li>
+    </ul>
+
+    <!-- Right -->
+    <div class="nav-right">
+      <div class="lang-selector" id="langSelector">
+        <button class="lang-btn active" data-lang="es">ES</button>
+        <button class="lang-btn" data-lang="de">DE</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
+      <button class="nav-toggle" id="menuToggle" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobileMenu" style="display:none">
+    <ul>
+      <li><a href="/"            data-i18n="nav.inicio">Inicio</a></li>
+      <li><a href="/#comites"    data-i18n="nav.comites">Comités</a></li>
+      <li><a href="/preparacion" data-i18n="nav.preparacion">Preparación</a></li>
+      <li><a href="/#registro"   data-i18n="nav.registro">Registro</a></li>
+      <li><a href="/#contacto"   data-i18n="nav.contacto">Contacto</a></li>
+    </ul>
+    <div class="lang-selector">
+      <button class="lang-btn active" data-lang="es">ES</button>
+      <button class="lang-btn" data-lang="de">DE</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+  </div>
+</nav>
+
+<style>
+  .navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: var(--navy);
+    z-index: 1000;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    opacity: 0; /* revealed by the hero's scroll-storytelling script */
+    transition: box-shadow 0.3s;
+  }
+  .navbar.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.25); }
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 72px;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .logo-humboldt {
+    height: 30px;
+    width: auto;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 4px;
+    padding: 0.3rem 0.55rem;
+    opacity: 0.95;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .brand-wordmark {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    color: #fff;
+  }
+  .brand-wordmark em {
+    font-style: italic;
+    color: var(--gold);
+    font-weight: 700;
+  }
+  .nav-brand:hover .logo-humboldt { opacity: 1; transform: scale(1.03); }
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+  .nav-links a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: #fff; }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-shrink: 0;
+  }
+  .lang-selector { display: flex; align-items: center; gap: 0.3rem; }
+  .lang-btn {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.45);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    padding: 0.15rem 0.3rem;
+    border-radius: 2px;
+    transition: color 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .lang-btn:hover { color: rgba(255,255,255,0.85); }
+  .lang-btn.active { color: var(--gold); }
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    width: 28px;
+  }
+  .nav-toggle span {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: rgba(255,255,255,0.85);
+    border-radius: 1px;
+    transition: all 0.3s;
+    transform-origin: center;
+  }
+  .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .nav-toggle.open span:nth-child(2) { opacity: 0; }
+  .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* Mobile menu */
+  .mobile-menu {
+    background: var(--navy);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 1.5rem 2.5rem 2rem;
+  }
+  .mobile-menu ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-bottom: 1.5rem;
+  }
+  .mobile-menu ul a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .mobile-menu ul a:hover { color: #fff; }
+
+  @media (max-width: 900px) {
+    .nav-links { display: none; }
+    .nav-toggle { display: flex; }
+    .nav-right > .lang-selector { display: none; }
+    .nav-inner { padding: 0 1.5rem; }
+  }
+  @media (max-width: 480px) {
+    .logo-humboldt { height: 28px; }
+    .brand-wordmark { font-size: 0.92rem; }
+  }
+</style>
+
+<script>
+  const translations = {
+    es: {
+      'nav.inicio': 'Inicio', 'nav.comites': 'Comités',
+      'nav.preparacion': 'Preparación',
+      'nav.registro': 'Registro', 'nav.contacto': 'Contacto',
+      'hero.cta': 'Explorar Comités',
+      'comites.tag': 'Edición 2027', 'comites.title': 'Comités',
+      'comites.desc': 'Conoce los comités de esta edición, sus temas y los países participantes.',
+      'comites.search': 'Buscar comité, tema o país...',
+      'registro.tag': 'Únete', 'registro.title': 'Registro de Delegados',
+      'registro.desc': 'Completa el formulario para registrar tu participación.',
+      'form.nombre': 'Nombre completo', 'form.nombre.ph': 'Tu nombre completo',
+      'form.escuela': 'Escuela', 'form.escuela.ph': 'Nombre de tu escuela',
+      'form.correo': 'Correo electrónico',
+      'form.comite': 'Comité de interés', 'form.comite.ph': 'Selecciona un comité',
+      'form.submit': 'Enviar Registro',
+      'hc.tag': 'Organización', 'hc.title': 'High Command',
+      'hc.desc': 'El equipo detrás de MUNBOLDT 2027.',
+      // Committee groups
+      'group.en.title': 'Comités en Inglés',
+      'group.en.meta': 'Se imparten en inglés · {n} comités',
+      'group.es.title': 'Comités en Español',
+      'group.es.meta': 'Se imparten en español · {n} comités',
+      'group.de.title': 'Comités en Alemán',
+      'group.de.meta': 'Se imparten en alemán · {n} comités',
+      'group.jr.title': 'Comités Junior',
+      'group.jr.meta': 'Para delegados principiantes · {n} comités',
+      // Committee card
+      'card.mesaDirectiva': 'Mesa Directiva',
+      'card.presidente': 'Presidente',
+      'card.secretario': 'Secretario',
+      'card.moderador': 'Moderador',
+      'card.porConfirmar': 'Por confirmar',
+      'card.verMas': 'Ver más',
+      'card.temaDebate': 'Tema de debate',
+      'card.paisesParticipantes': 'Países participantes ({n})',
+      // Hero — extra
+      'hero.tagline': 'Construyendo puentes, no muros',
+      'hero.subtitle': 'Modelo de Naciones Unidas — Edición 2027',
+      // Committees — extra
+      'comites.noResults': 'No se encontraron resultados.',
+      'comites.searchClear': 'Limpiar',
+      // Committee detail page
+      'comite.volver': 'Volver a Comités',
+      'comite.temaPendiente': 'Tema de debate — por anunciar',
+      'comite.mesaDesc': 'Presentamos la estructura de la mesa directiva de {sig}. Las fotografías y nombres se publicarán conforme se confirmen las y los integrantes del equipo.',
+      'comite.bgGuide.title': 'Background Guide',
+      'comite.bgGuide.desc': 'Consulta la guía de trabajo oficial de {sig}: contexto histórico, temas clave, posiciones de bloque y las preguntas que tu resolución deberá responder. Tómala como punto de partida — tu propia investigación hará la diferencia en comité.',
+      'comite.bgGuide.download': 'Descargar Background Guide (PDF)',
+      'comite.paises.title': 'Países Participantes',
+      'comite.paises.empty': 'La lista de países participantes se publicará próximamente.',
+      // Footer
+      'footer.copyright': '© 2027 MUNBOLDT · Colegio Humboldt Puebla, México',
+      'footer.credit': 'Desarrollado por Victor A. Rea Flores — Logistics & Treasury',
+      // High Command — role labels
+      'hc.role.advisor': 'Asesor',
+      'hc.role.generalSecretary': 'Secretario General',
+      'hc.role.underSecretary': 'Subsecretario',
+      'hc.role.logisticsTreasury': 'Logística · Tesorería',
+      'hc.role.hospitality': 'Jefa de Hospitalidad',
+      'hc.role.generalAssembly': 'Jefa de Asamblea General',
+      'hc.role.logistics': 'Jefe de Logística',
+      // Registration form — extra
+      'form.submitSuccess': '✓ Enviado',
+      // Preparación — access gate
+      'prep.eyebrow': 'Recursos para MUNBOLDT 2027',
+      'prep.gate.question': '¿Cómo te preparas hoy?',
+      'prep.gate.intro': 'Elige tu perfil para ver los recursos pensados para ti — ya seas delegado redactando tu position paper, o miembro de mesa directiva construyendo el background guide de tu comité.',
+      'prep.gate.delegado.title': 'Soy Delegado',
+      'prep.gate.delegado.desc': 'Guía para escribir tu position paper, ejemplo en PDF, videos de capacitación y un asistente de IA.',
+      'prep.gate.mesa.title': 'Soy Miembro de Mesa',
+      'prep.gate.mesa.desc': 'Acceso con código para presidentes, secretarios y moderadores — videos y un asistente para tu background guide.',
+      'prep.gate.pinLabel': 'Código de acceso de mesa directiva',
+      'prep.gate.pinAria': 'Código de acceso de 4 dígitos',
+      'prep.gate.pinError': 'Código incorrecto. Verifica con tu director de comité e intenta de nuevo.',
+      'prep.gate.enter': 'Entrar',
+      // Preparación — hero
+      'prep.changeProfile': 'Elegir otro perfil',
+      'prep.heroTitle': 'Preparación para MUNBOLDT 2027',
+      'prep.heroIntro': 'Todo lo que necesitas para llegar a tu comité con confianza: cómo redactar tu position paper o construir el background guide de tu comité, videos de capacitación sobre procedimiento parlamentario, y un asistente con inteligencia artificial disponible cuando lo necesites.',
+      // Preparación — Position Paper
+      'prep.pp.tag': 'Guía Escrita',
+      'prep.pp.title': 'Cómo escribir un Position Paper',
+      'prep.pp.desc': 'Un position paper es el documento mediante el cual cada delegación expone, antes de la conferencia, la postura de su país frente al tema de su comité. Es tu carta de presentación ante la mesa directiva: demuestra que investigaste, que entiendes el problema y que llegas con propuestas concretas.',
+      'prep.pp.step1.title': 'Encabezado',
+      'prep.pp.step1.text': 'País, comité y tema de debate, claramente identificados en la primera línea.',
+      'prep.pp.step2.title': 'Postura del país',
+      'prep.pp.step2.text': 'Resume en un párrafo la posición oficial de tu delegación frente al tema.',
+      'prep.pp.step3.title': 'Introducción al problema',
+      'prep.pp.step3.text': 'Contextualiza el tema: por qué importa y qué lo hace urgente hoy.',
+      'prep.pp.step4.title': 'Argumentos centrales',
+      'prep.pp.step4.text': 'Sustenta tu postura con datos, antecedentes y referencias verificables.',
+      'prep.pp.step5.title': 'Propuestas de solución',
+      'prep.pp.step5.text': 'Plantea acciones concretas que tu país impulsaría dentro del comité.',
+      'prep.pp.step6.title': 'Conclusión',
+      'prep.pp.step6.text': 'Cierra resumiendo tu posición y haciendo un llamado claro a la acción.',
+      'prep.pp.example': 'Ejemplo de referencia (PDF)',
+      'prep.pp.loadingPreview': 'Cargando vista previa…',
+      'prep.pp.previewError': 'No se pudo cargar la vista previa. Usa el botón "Descargar PDF" para verlo.',
+      'prep.pp.download': 'Descargar PDF',
+      // Preparación — Videos
+      'prep.videos.tag': 'Capacitación',
+      'prep.videos.title': 'Videos de Capacitación',
+      'prep.videos.desc': 'Tres recursos audiovisuales para dominar lo esencial antes de llegar a tu comité: qué es un Modelo de Naciones Unidas, cómo funciona el debate formal y cómo se construyen resoluciones efectivas.',
+      'prep.video1.title': 'Introducción al Modelo de Naciones Unidas',
+      'prep.video2.title': 'Procedimiento parlamentario y debate formal',
+      'prep.video3.title': 'Cómo redactar resoluciones y enmiendas',
+      // Preparación — Asistente
+      'prep.asst.tag': 'Inteligencia Artificial',
+      'prep.asst.title': 'Asistente de Preparación',
+      'prep.asst.desc': 'Conversa con un asistente con IA entrenado para ayudarte a preparar tu participación. Elige el modo que mejor se ajuste a lo que necesitas en este momento.',
+      'prep.asst.modeAria': 'Modo del asistente',
+      'prep.asst.modeQuick': 'Guía Rápida',
+      'prep.asst.modeFocused': 'Preparación Enfocada',
+      'prep.asst.committeeLabel': 'Tu comité',
+      'prep.asst.committeePh': 'Selecciona un comité…',
+      'prep.asst.countryLabel': 'País que representas',
+      'prep.asst.countryPh': 'Ej. Francia, Japón, Brasil…',
+      'prep.asst.inputPh': 'Escribe tu pregunta...',
+      'prep.asst.sendAria': 'Enviar mensaje',
+      'prep.back': 'Volver a Comités',
+    },
+    de: {
+      'nav.inicio': 'Start', 'nav.comites': 'Komitees',
+      'nav.preparacion': 'Vorbereitung',
+      'nav.registro': 'Anmeldung', 'nav.contacto': 'Kontakt',
+      'hero.cta': 'Komitees entdecken',
+      'comites.tag': 'Ausgabe 2027', 'comites.title': 'Komitees',
+      'comites.desc': 'Entdecken Sie die Komitees dieser Ausgabe, ihre Themen und die teilnehmenden Länder.',
+      'comites.search': 'Komitee, Thema oder Land suchen...',
+      'registro.tag': 'Mitmachen', 'registro.title': 'Delegiertenanmeldung',
+      'registro.desc': 'Füllen Sie das Formular aus, um Ihre Teilnahme zu registrieren.',
+      'form.nombre': 'Vollständiger Name', 'form.nombre.ph': 'Ihr vollständiger Name',
+      'form.escuela': 'Schule', 'form.escuela.ph': 'Name Ihrer Schule',
+      'form.correo': 'E-Mail-Adresse',
+      'form.comite': 'Gewünschtes Komitee', 'form.comite.ph': 'Komitee auswählen',
+      'form.submit': 'Anmeldung absenden',
+      'hc.tag': 'Organisation', 'hc.title': 'High Command',
+      'hc.desc': 'Das Team hinter MUNBOLDT 2027.',
+      // Committee groups
+      'group.en.title': 'Englische Ausschüsse',
+      'group.en.meta': 'Auf Englisch · {n} Ausschüsse',
+      'group.es.title': 'Spanische Ausschüsse',
+      'group.es.meta': 'Auf Spanisch · {n} Ausschüsse',
+      'group.de.title': 'Deutsche Ausschüsse',
+      'group.de.meta': 'Auf Deutsch · {n} Ausschüsse',
+      'group.jr.title': 'Junior-Ausschüsse',
+      'group.jr.meta': 'Für Anfänger-Delegierte · {n} Ausschüsse',
+      // Committee card
+      'card.mesaDirectiva': 'Vorstand',
+      'card.presidente': 'Vorsitzender',
+      'card.secretario': 'Sekretär',
+      'card.moderador': 'Moderator',
+      'card.porConfirmar': 'Noch nicht bestätigt',
+      'card.verMas': 'Mehr sehen',
+      'card.temaDebate': 'Debattenthema',
+      'card.paisesParticipantes': 'Teilnehmende Länder ({n})',
+      // Hero — extra
+      'hero.tagline': 'Brücken bauen, keine Mauern',
+      'hero.subtitle': 'Modell der Vereinten Nationen — Ausgabe 2027',
+      // Committees — extra
+      'comites.noResults': 'Keine Ergebnisse gefunden.',
+      'comites.searchClear': 'Löschen',
+      // Committee detail page
+      'comite.volver': 'Zurück zu den Komitees',
+      'comite.temaPendiente': 'Debattenthema — wird noch bekanntgegeben',
+      'comite.mesaDesc': 'Hier stellen wir den Vorstand von {sig} vor. Fotos und Namen werden veröffentlicht, sobald die Teammitglieder bestätigt sind.',
+      'comite.bgGuide.title': 'Background Guide',
+      'comite.bgGuide.desc': 'Lies den offiziellen Leitfaden von {sig}: historischer Kontext, Kernthemen, Blockpositionen und die Fragen, die deine Resolution beantworten muss. Nutze ihn als Ausgangspunkt — deine eigene Recherche macht im Komitee den Unterschied.',
+      'comite.bgGuide.download': 'Background Guide herunterladen (PDF)',
+      'comite.paises.title': 'Teilnehmende Länder',
+      'comite.paises.empty': 'Die Liste der teilnehmenden Länder wird in Kürze veröffentlicht.',
+      // Footer
+      'footer.copyright': '© 2027 MUNBOLDT · Colegio Humboldt Puebla, Mexiko',
+      'footer.credit': 'Entwickelt von Victor A. Rea Flores — Logistics & Treasury',
+      // High Command — role labels
+      'hc.role.advisor': 'Berater',
+      'hc.role.generalSecretary': 'Generalsekretär',
+      'hc.role.underSecretary': 'Untersekretär',
+      'hc.role.logisticsTreasury': 'Logistik · Finanzen',
+      'hc.role.hospitality': 'Leiterin Gastfreundschaft',
+      'hc.role.generalAssembly': 'Leiterin Generalversammlung',
+      'hc.role.logistics': 'Leiter Logistik',
+      // Registration form — extra
+      'form.submitSuccess': '✓ Gesendet',
+      // Preparación — access gate
+      'prep.eyebrow': 'Ressourcen für MUNBOLDT 2027',
+      'prep.gate.question': 'Wie bereitest du dich heute vor?',
+      'prep.gate.intro': 'Wähle dein Profil, um die für dich gedachten Ressourcen zu sehen — egal ob du als Delegierter dein Position Paper schreibst oder als Vorstandsmitglied den Background Guide deines Komitees erstellst.',
+      'prep.gate.delegado.title': 'Ich bin Delegierte/r',
+      'prep.gate.delegado.desc': 'Anleitung zum Schreiben deines Position Papers, Beispiel als PDF, Schulungsvideos und ein KI-Assistent.',
+      'prep.gate.mesa.title': 'Ich bin Vorstandsmitglied',
+      'prep.gate.mesa.desc': 'Zugang per Code für Vorsitzende, Sekretäre und Moderatoren — Videos und ein Assistent für deinen Background Guide.',
+      'prep.gate.pinLabel': 'Zugangscode des Vorstands',
+      'prep.gate.pinAria': 'Vierstelliger Zugangscode',
+      'prep.gate.pinError': 'Falscher Code. Wende dich an deine Komiteeleitung und versuche es erneut.',
+      'prep.gate.enter': 'Bestätigen',
+      // Preparación — hero
+      'prep.changeProfile': 'Anderes Profil wählen',
+      'prep.heroTitle': 'Vorbereitung für MUNBOLDT 2027',
+      'prep.heroIntro': 'Alles, was du brauchst, um selbstbewusst in dein Komitee zu gehen: wie man ein Position Paper schreibt oder den Background Guide seines Komitees erstellt, Schulungsvideos zum parlamentarischen Verfahren und ein KI-Assistent, der dir jederzeit zur Verfügung steht.',
+      // Preparación — Position Paper
+      'prep.pp.tag': 'Schriftlicher Leitfaden',
+      'prep.pp.title': 'Wie man ein Position Paper schreibt',
+      'prep.pp.desc': 'Ein Position Paper ist das Dokument, mit dem jede Delegation vor der Konferenz die Haltung ihres Landes zum Thema ihres Komitees darlegt. Es ist deine Visitenkarte beim Vorstand: Es zeigt, dass du recherchiert hast, das Problem verstehst und mit konkreten Vorschlägen ankommst.',
+      'prep.pp.step1.title': 'Kopfzeile',
+      'prep.pp.step1.text': 'Land, Komitee und Debattenthema, klar in der ersten Zeile angegeben.',
+      'prep.pp.step2.title': 'Haltung des Landes',
+      'prep.pp.step2.text': 'Fasse die offizielle Position deiner Delegation zum Thema in einem Absatz zusammen.',
+      'prep.pp.step3.title': 'Einführung in das Problem',
+      'prep.pp.step3.text': 'Stelle das Thema in den Kontext: warum es wichtig ist und was es heute dringend macht.',
+      'prep.pp.step4.title': 'Zentrale Argumente',
+      'prep.pp.step4.text': 'Untermauere deine Position mit Daten, Hintergründen und überprüfbaren Quellen.',
+      'prep.pp.step5.title': 'Lösungsvorschläge',
+      'prep.pp.step5.text': 'Schlage konkrete Maßnahmen vor, die dein Land im Komitee vorantreiben würde.',
+      'prep.pp.step6.title': 'Schluss',
+      'prep.pp.step6.text': 'Schließe mit einer Zusammenfassung deiner Position und einem klaren Aufruf zum Handeln.',
+      'prep.pp.example': 'Referenzbeispiel (PDF)',
+      'prep.pp.loadingPreview': 'Vorschau wird geladen…',
+      'prep.pp.previewError': 'Die Vorschau konnte nicht geladen werden. Nutze die Schaltfläche „PDF herunterladen“, um sie zu sehen.',
+      'prep.pp.download': 'PDF herunterladen',
+      // Preparación — Videos
+      'prep.videos.tag': 'Schulung',
+      'prep.videos.title': 'Schulungsvideos',
+      'prep.videos.desc': 'Drei audiovisuelle Ressourcen, um das Wesentliche zu beherrschen, bevor du in dein Komitee gehst: was ein Modell der Vereinten Nationen ist, wie die formelle Debatte funktioniert und wie wirksame Resolutionen entstehen.',
+      'prep.video1.title': 'Einführung in das Modell der Vereinten Nationen',
+      'prep.video2.title': 'Parlamentarisches Verfahren und formelle Debatte',
+      'prep.video3.title': 'Wie man Resolutionen und Änderungsanträge verfasst',
+      // Preparación — Asistente
+      'prep.asst.tag': 'Künstliche Intelligenz',
+      'prep.asst.title': 'Vorbereitungsassistent',
+      'prep.asst.desc': 'Sprich mit einem KI-Assistenten, der darauf trainiert ist, dir bei der Vorbereitung zu helfen. Wähle den Modus, der gerade am besten zu deinen Bedürfnissen passt.',
+      'prep.asst.modeAria': 'Assistentenmodus',
+      'prep.asst.modeQuick': 'Schnellanleitung',
+      'prep.asst.modeFocused': 'Gezielte Vorbereitung',
+      'prep.asst.committeeLabel': 'Dein Komitee',
+      'prep.asst.committeePh': 'Komitee auswählen…',
+      'prep.asst.countryLabel': 'Land, das du vertrittst',
+      'prep.asst.countryPh': 'z. B. Frankreich, Japan, Brasilien…',
+      'prep.asst.inputPh': 'Schreibe deine Frage...',
+      'prep.asst.sendAria': 'Nachricht senden',
+      'prep.back': 'Zurück zu den Komitees',
+    },
+    en: {
+      'nav.inicio': 'Home', 'nav.comites': 'Committees',
+      'nav.preparacion': 'Preparation',
+      'nav.registro': 'Register', 'nav.contacto': 'Contact',
+      'hero.cta': 'Explore Committees',
+      'comites.tag': '2027 Edition', 'comites.title': 'Committees',
+      'comites.desc': 'Learn about the committees of this edition, their topics, and participating countries.',
+      'comites.search': 'Search committee, topic or country...',
+      'registro.tag': 'Join Us', 'registro.title': 'Delegate Registration',
+      'registro.desc': 'Complete the form to register your participation.',
+      'form.nombre': 'Full Name', 'form.nombre.ph': 'Your full name',
+      'form.escuela': 'School', 'form.escuela.ph': 'Your school name',
+      'form.correo': 'Email Address',
+      'form.comite': 'Committee of Interest', 'form.comite.ph': 'Select a committee',
+      'form.submit': 'Submit Registration',
+      'hc.tag': 'Organization', 'hc.title': 'High Command',
+      'hc.desc': 'The team behind MUNBOLDT 2027.',
+      // Committee groups
+      'group.en.title': 'English Committees',
+      'group.en.meta': 'Conducted in English · {n} committees',
+      'group.es.title': 'Spanish Committees',
+      'group.es.meta': 'Conducted in Spanish · {n} committees',
+      'group.de.title': 'German Committees',
+      'group.de.meta': 'Conducted in German · {n} committees',
+      'group.jr.title': 'Junior Committees',
+      'group.jr.meta': 'For beginner delegates · {n} committees',
+      // Committee card
+      'card.mesaDirectiva': 'Board',
+      'card.presidente': 'President',
+      'card.secretario': 'Secretary',
+      'card.moderador': 'Moderator',
+      'card.porConfirmar': 'To be confirmed',
+      'card.verMas': 'See more',
+      'card.temaDebate': 'Topic of debate',
+      'card.paisesParticipantes': 'Participating countries ({n})',
+      // Hero — extra
+      'hero.tagline': 'Building bridges, not walls',
+      'hero.subtitle': 'Model United Nations — 2027 Edition',
+      // Committees — extra
+      'comites.noResults': 'No results found.',
+      'comites.searchClear': 'Clear',
+      // Committee detail page
+      'comite.volver': 'Back to Committees',
+      'comite.temaPendiente': 'Topic of debate — to be announced',
+      'comite.mesaDesc': 'Here is the board structure of {sig}. Photos and names will be published as team members are confirmed.',
+      'comite.bgGuide.title': 'Background Guide',
+      'comite.bgGuide.desc': 'Check out the official background guide for {sig}: historical context, key issues, bloc positions, and the questions your resolution will need to answer. Use it as a starting point — your own research will make the difference in committee.',
+      'comite.bgGuide.download': 'Download Background Guide (PDF)',
+      'comite.paises.title': 'Participating Countries',
+      'comite.paises.empty': 'The list of participating countries will be published soon.',
+      // Footer
+      'footer.copyright': '© 2027 MUNBOLDT · Colegio Humboldt Puebla, Mexico',
+      'footer.credit': 'Developed by Victor A. Rea Flores — Logistics & Treasury',
+      // High Command — role labels
+      'hc.role.advisor': 'Advisor',
+      'hc.role.generalSecretary': 'General Secretary',
+      'hc.role.underSecretary': 'Under Secretary',
+      'hc.role.logisticsTreasury': 'Logistics · Treasury',
+      'hc.role.hospitality': 'Head of Hospitality',
+      'hc.role.generalAssembly': 'Head of General Assembly',
+      'hc.role.logistics': 'Head of Logistics',
+      // Registration form — extra
+      'form.submitSuccess': '✓ Submitted',
+      // Preparación — access gate
+      'prep.eyebrow': 'Resources for MUNBOLDT 2027',
+      'prep.gate.question': 'How are you preparing today?',
+      'prep.gate.intro': 'Choose your profile to see the resources designed for you — whether you are a delegate drafting your position paper, or a board member building your committee’s background guide.',
+      'prep.gate.delegado.title': 'I’m a Delegate',
+      'prep.gate.delegado.desc': 'A guide to writing your position paper, a sample PDF, training videos, and an AI assistant.',
+      'prep.gate.mesa.title': 'I’m a Board Member',
+      'prep.gate.mesa.desc': 'Code-based access for chairs, secretaries, and moderators — videos and an assistant for your background guide.',
+      'prep.gate.pinLabel': 'Board access code',
+      'prep.gate.pinAria': '4-digit access code',
+      'prep.gate.pinError': 'Incorrect code. Check with your committee director and try again.',
+      'prep.gate.enter': 'Enter',
+      // Preparación — hero
+      'prep.changeProfile': 'Choose a different profile',
+      'prep.heroTitle': 'Preparation for MUNBOLDT 2027',
+      'prep.heroIntro': 'Everything you need to walk into your committee with confidence: how to draft your position paper or build your committee’s background guide, training videos on parliamentary procedure, and an AI assistant available whenever you need it.',
+      // Preparación — Position Paper
+      'prep.pp.tag': 'Written Guide',
+      'prep.pp.title': 'How to Write a Position Paper',
+      'prep.pp.desc': 'A position paper is the document through which each delegation lays out, ahead of the conference, its country’s stance on its committee’s topic. It’s your introduction to the board: it shows that you researched, that you understand the problem, and that you arrive with concrete proposals.',
+      'prep.pp.step1.title': 'Heading',
+      'prep.pp.step1.text': 'Country, committee, and topic of debate, clearly identified in the first line.',
+      'prep.pp.step2.title': 'Country’s stance',
+      'prep.pp.step2.text': 'Summarize your delegation’s official position on the topic in one paragraph.',
+      'prep.pp.step3.title': 'Introduction to the problem',
+      'prep.pp.step3.text': 'Provide context for the topic: why it matters and what makes it urgent today.',
+      'prep.pp.step4.title': 'Core arguments',
+      'prep.pp.step4.text': 'Support your stance with data, background, and verifiable references.',
+      'prep.pp.step5.title': 'Proposed solutions',
+      'prep.pp.step5.text': 'Lay out concrete actions your country would push for within the committee.',
+      'prep.pp.step6.title': 'Conclusion',
+      'prep.pp.step6.text': 'Close by summarizing your position and making a clear call to action.',
+      'prep.pp.example': 'Reference example (PDF)',
+      'prep.pp.loadingPreview': 'Loading preview…',
+      'prep.pp.previewError': 'The preview could not be loaded. Use the "Download PDF" button to view it.',
+      'prep.pp.download': 'Download PDF',
+      // Preparación — Videos
+      'prep.videos.tag': 'Training',
+      'prep.videos.title': 'Training Videos',
+      'prep.videos.desc': 'Three audiovisual resources to master the essentials before reaching your committee: what a Model United Nations is, how formal debate works, and how effective resolutions are built.',
+      'prep.video1.title': 'Introduction to the Model United Nations',
+      'prep.video2.title': 'Parliamentary procedure and formal debate',
+      'prep.video3.title': 'How to draft resolutions and amendments',
+      // Preparación — Asistente
+      'prep.asst.tag': 'Artificial Intelligence',
+      'prep.asst.title': 'Preparation Assistant',
+      'prep.asst.desc': 'Chat with an AI assistant trained to help you prepare for your participation. Choose the mode that best fits what you need right now.',
+      'prep.asst.modeAria': 'Assistant mode',
+      'prep.asst.modeQuick': 'Quick Guide',
+      'prep.asst.modeFocused': 'Focused Preparation',
+      'prep.asst.committeeLabel': 'Your committee',
+      'prep.asst.committeePh': 'Select a committee…',
+      'prep.asst.countryLabel': 'Country you represent',
+      'prep.asst.countryPh': 'E.g. France, Japan, Brazil…',
+      'prep.asst.inputPh': 'Type your question...',
+      'prep.asst.sendAria': 'Send message',
+      'prep.back': 'Back to Committees',
+    },
+  } as const;
+
+  type Lang = keyof typeof translations;
+
+  function applyLang(lang: Lang) {
+    localStorage.setItem('munboldt-lang', lang);
+    const dict = translations[lang];
+    document.querySelectorAll<HTMLElement>('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n') as keyof typeof dict;
+      const template = dict[key];
+      if (!template) return;
+      let text: string = template;
+      const count = el.getAttribute('data-i18n-count');
+      if (count !== null) text = text.replace('{n}', count);
+      const varsAttr = el.getAttribute('data-i18n-vars');
+      if (varsAttr) {
+        try {
+          const vars = JSON.parse(varsAttr) as Record<string, string>;
+          Object.entries(vars).forEach(([k, v]) => {
+            text = text.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+          });
+        } catch { /* ignore malformed data-i18n-vars */ }
+      }
+      el.textContent = text;
+    });
+    document.querySelectorAll<HTMLInputElement>('[data-i18n-ph]').forEach((el) => {
+      const key = el.getAttribute('data-i18n-ph') as keyof typeof dict;
+      if (dict[key]) el.placeholder = dict[key];
+    });
+    document.querySelectorAll<HTMLElement>('[data-i18n-aria]').forEach((el) => {
+      const key = el.getAttribute('data-i18n-aria') as keyof typeof dict;
+      if (dict[key]) el.setAttribute('aria-label', dict[key]);
+    });
+    document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach((btn) => {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+    // Let other components (e.g. the Preparación chatbot) react to language
+    // changes — they may render dynamic strings (welcome messages, system
+    // prompts) that data-i18n attributes alone can't reach.
+    window.dispatchEvent(new CustomEvent('munboldt:langchange', { detail: { lang } }));
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const saved = (localStorage.getItem('munboldt-lang') ?? 'es') as Lang;
+    applyLang(saved);
+
+    document.querySelectorAll<HTMLButtonElement>('.lang-btn').forEach((btn) => {
+      btn.addEventListener('click', () => applyLang((btn.getAttribute('data-lang') ?? 'es') as Lang));
+    });
+
+    const navbar = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      navbar?.classList.toggle('scrolled', window.scrollY > 20);
+    }, { passive: true });
+
+    const toggle = document.getElementById('menuToggle');
+    const mobileMenu = document.getElementById('mobileMenu') as HTMLElement | null;
+    toggle?.addEventListener('click', () => {
+      toggle.classList.toggle('open');
+      if (mobileMenu) {
+        mobileMenu.style.display = mobileMenu.style.display === 'block' ? 'none' : 'block';
+      }
+    });
+    document.querySelectorAll('.mobile-menu a').forEach((link) => {
+      link.addEventListener('click', () => {
+        toggle?.classList.remove('open');
+        if (mobileMenu) mobileMenu.style.display = 'none';
+      });
+    });
+  });
+</script>

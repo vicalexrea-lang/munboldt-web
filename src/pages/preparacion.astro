@@ -1,0 +1,1205 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+import comites from '../data/comites.json';
+
+const videos = [
+  { id: 'fN1EeD16Vr4', title: 'Introducción al Modelo de Naciones Unidas', titleKey: 'prep.video1.title' },
+  { id: 'Wi2CRiCWZiA', title: 'Procedimiento parlamentario y debate formal', titleKey: 'prep.video2.title' },
+  { id: 'jgoh13gdSMg', title: 'Cómo redactar resoluciones y enmiendas', titleKey: 'prep.video3.title' },
+];
+---
+
+<Layout title="Preparación — MUNBOLDT 2027">
+  <Navbar />
+
+  <main class="prep-page">
+
+    <!-- ───────── Pantalla de acceso ───────── -->
+    <section class="access-gate" id="accessGate">
+      <div class="prep-container prep-container--narrow">
+        <span class="prep-eyebrow" data-i18n="prep.eyebrow">Recursos para MUNBOLDT 2027</span>
+        <h1 class="prep-heading" data-i18n="prep.gate.question">¿Cómo te preparas hoy?</h1>
+        <p class="prep-intro" data-i18n="prep.gate.intro">
+          Elige tu perfil para ver los recursos pensados para ti — ya seas delegado
+          redactando tu <em>position paper</em>, o miembro de mesa directiva construyendo
+          el <em>background guide</em> de tu comité.
+        </p>
+        <div class="prep-divider" aria-hidden="true"></div>
+
+        <div class="access-options">
+          <button type="button" class="access-card" id="accessDelegateBtn">
+            <span class="access-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 4a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4zm8 0v4a1 1 0 0 0 1 1h4l-5-5zM7 13h10v1.5H7V13zm0 3h7v1.5H7V16z"/></svg>
+            </span>
+            <span class="access-card-title" data-i18n="prep.gate.delegado.title">Soy Delegado</span>
+            <span class="access-card-desc" data-i18n="prep.gate.delegado.desc">Guía para escribir tu position paper, ejemplo en PDF, videos de capacitación y un asistente de IA.</span>
+          </button>
+
+          <button type="button" class="access-card" id="accessMesaBtn">
+            <span class="access-card-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 3 6v6c0 5 3.8 9.4 9 10 5.2-.6 9-5 9-10V6l-9-4zm0 4.2 5.5 2.4v3.4c0 3.6-2.5 6.7-5.5 7.6-3-.9-5.5-4-5.5-7.6V8.6L12 6.2zM11 11h2v5h-2v-5zm0-3h2v2h-2V8z"/></svg>
+            </span>
+            <span class="access-card-title" data-i18n="prep.gate.mesa.title">Soy Miembro de Mesa</span>
+            <span class="access-card-desc" data-i18n="prep.gate.mesa.desc">Acceso con código para presidentes, secretarios y moderadores — videos y un asistente para tu background guide.</span>
+          </button>
+        </div>
+
+        <!-- PIN entry — shown after choosing "Miembro de Mesa" -->
+        <div class="pin-panel" id="pinPanel" hidden>
+          <label for="pinInput" data-i18n="prep.gate.pinLabel">Código de acceso de mesa directiva</label>
+          <div class="pin-row">
+            <input type="text" id="pinInput" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="••••" autocomplete="off" aria-label="Código de acceso de 4 dígitos" data-i18n-aria="prep.gate.pinAria" />
+            <button type="button" class="pin-submit" id="pinSubmitBtn" data-i18n="prep.gate.enter">Entrar</button>
+          </div>
+          <p class="pin-error" id="pinError" hidden data-i18n="prep.gate.pinError">Código incorrecto. Verifica con tu director de comité e intenta de nuevo.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── Contenido (según el perfil elegido) ───────── -->
+    <div id="prepContent" hidden>
+
+    <!-- ───────── Encabezado ───────── -->
+    <header class="prep-hero">
+      <div class="prep-container">
+        <button type="button" class="prep-switch" id="prepSwitchBtn">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+          </svg>
+          <span data-i18n="prep.changeProfile">Elegir otro perfil</span>
+        </button>
+        <span class="prep-eyebrow" data-i18n="prep.eyebrow">Recursos para MUNBOLDT 2027</span>
+        <h1 class="prep-heading" data-i18n="prep.heroTitle">Preparación para MUNBOLDT 2027</h1>
+        <p class="prep-intro" data-i18n="prep.heroIntro">
+          Todo lo que necesitas para llegar a tu comité con confianza: cómo redactar tu
+          <em>position paper</em> o construir el <em>background guide</em> de tu comité,
+          videos de capacitación sobre procedimiento parlamentario, y un asistente con
+          inteligencia artificial disponible cuando lo necesites.
+        </p>
+        <div class="prep-divider" aria-hidden="true"></div>
+      </div>
+    </header>
+
+    <!-- ───────── Sección 1 · Position Paper ───────── -->
+    <section id="position-paper" class="prep-section">
+      <div class="prep-container">
+        <span class="prep-tag" data-i18n="prep.pp.tag">Guía Escrita</span>
+        <h2 class="prep-title" data-i18n="prep.pp.title">Cómo escribir un Position Paper</h2>
+        <p class="prep-desc" data-i18n="prep.pp.desc">
+          Un <em>position paper</em> es el documento mediante el cual cada delegación expone,
+          antes de la conferencia, la postura de su país frente al tema de su comité. Es tu
+          carta de presentación ante la mesa directiva: demuestra que investigaste, que
+          entiendes el problema y que llegas con propuestas concretas.
+        </p>
+
+        <div class="pp-layout">
+          <ol class="pp-steps">
+            <li>
+              <span class="pp-step-num">1</span>
+              <div>
+                <p class="pp-step-title" data-i18n="prep.pp.step1.title">Encabezado</p>
+                <p class="pp-step-text" data-i18n="prep.pp.step1.text">País, comité y tema de debate, claramente identificados en la primera línea.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pp-step-num">2</span>
+              <div>
+                <p class="pp-step-title" data-i18n="prep.pp.step2.title">Postura del país</p>
+                <p class="pp-step-text" data-i18n="prep.pp.step2.text">Resume en un párrafo la posición oficial de tu delegación frente al tema.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pp-step-num">3</span>
+              <div>
+                <p class="pp-step-title" data-i18n="prep.pp.step3.title">Introducción al problema</p>
+                <p class="pp-step-text" data-i18n="prep.pp.step3.text">Contextualiza el tema: por qué importa y qué lo hace urgente hoy.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pp-step-num">4</span>
+              <div>
+                <p class="pp-step-title" data-i18n="prep.pp.step4.title">Argumentos centrales</p>
+                <p class="pp-step-text" data-i18n="prep.pp.step4.text">Sustenta tu postura con datos, antecedentes y referencias verificables.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pp-step-num">5</span>
+              <div>
+                <p class="pp-step-title" data-i18n="prep.pp.step5.title">Propuestas de solución</p>
+                <p class="pp-step-text" data-i18n="prep.pp.step5.text">Plantea acciones concretas que tu país impulsaría dentro del comité.</p>
+              </div>
+            </li>
+            <li>
+              <span class="pp-step-num">6</span>
+              <div>
+                <p class="pp-step-title" data-i18n="prep.pp.step6.title">Conclusión</p>
+                <p class="pp-step-text" data-i18n="prep.pp.step6.text">Cierra resumiendo tu posición y haciendo un llamado claro a la acción.</p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="pp-pdf-col">
+            <p class="pp-pdf-label" data-i18n="prep.pp.example">Ejemplo de referencia (PDF)</p>
+            <div class="pdf-canvas-wrap" id="pdfCanvasWrap">
+              <canvas id="pdfCanvas" class="pdf-canvas" aria-label="Vista previa del Position Paper de ejemplo — primera página"></canvas>
+              <p class="pdf-canvas-note" id="pdfCanvasNote" data-i18n="prep.pp.loadingPreview">Cargando vista previa…</p>
+            </div>
+            <a href="/sample-position-paper.pdf" class="pdf-download" download>
+              <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.5 10.293V1.5a.5.5 0 0 1 1 0v8.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L7.5 10.293z"/>
+              </svg>
+              <span data-i18n="prep.pp.download">Descargar PDF</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── Sección 2 · Videos de Capacitación ───────── -->
+    <section id="videos" class="prep-section prep-section--alt">
+      <div class="prep-container">
+        <span class="prep-tag" data-i18n="prep.videos.tag">Capacitación</span>
+        <h2 class="prep-title" data-i18n="prep.videos.title">Videos de Capacitación</h2>
+        <p class="prep-desc" data-i18n="prep.videos.desc">
+          Tres recursos audiovisuales para dominar lo esencial antes de llegar a tu comité:
+          qué es un Modelo de Naciones Unidas, cómo funciona el debate formal y cómo se
+          construyen resoluciones efectivas.
+        </p>
+        <div class="videos-grid">
+          {videos.map((v) => (
+            <article class="video-card">
+              <div class="video-frame">
+                <iframe
+                  src={`https://www.youtube.com/embed/${v.id}`}
+                  title={v.title}
+                  frameborder="0"
+                  allowfullscreen
+                  loading="lazy"
+                />
+              </div>
+              <p class="video-title" data-i18n={v.titleKey}>{v.title}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── Sección 3 · Asistente IA ───────── -->
+    <section id="asistente" class="prep-section">
+      <div class="prep-container prep-container--narrow">
+        <span class="prep-tag" data-i18n="prep.asst.tag">Inteligencia Artificial</span>
+        <h2 class="prep-title" data-i18n="prep.asst.title">Asistente de Preparación</h2>
+        <p class="prep-desc" data-i18n="prep.asst.desc">
+          Conversa con un asistente con IA entrenado para ayudarte a preparar tu participación.
+          Elige el modo que mejor se ajuste a lo que necesitas en este momento.
+        </p>
+
+        <!-- Delegate-only chat controls: mode toggle + focused-mode fields.
+             Mesa members get a single fixed background-guide persona, so this
+             whole block is hidden for that track. -->
+        <div class="delegate-chat-controls" id="delegateChatControls">
+          <div class="mode-toggle" role="group" aria-label="Modo del asistente" data-i18n-aria="prep.asst.modeAria">
+            <button type="button" class="mode-btn is-active" id="modeQuickBtn" data-mode="quick" data-i18n="prep.asst.modeQuick">
+              Guía Rápida
+            </button>
+            <button type="button" class="mode-btn" id="modeFocusedBtn" data-mode="focused" data-i18n="prep.asst.modeFocused">
+              Preparación Enfocada
+            </button>
+          </div>
+
+          <!-- Focused-mode controls (committee + country) -->
+          <div class="focused-controls" id="focusedControls" hidden>
+            <div class="focused-field">
+              <label for="committeeSelect" data-i18n="prep.asst.committeeLabel">Tu comité</label>
+              <select id="committeeSelect">
+                <option value="" data-i18n="prep.asst.committeePh">Selecciona un comité…</option>
+                {comites.map((c) => (
+                  <option
+                    value={c.id}
+                    data-siglas={c.siglas}
+                    data-nombre={c.nombre}
+                    data-tema={c.tema || ''}
+                  >
+                    {c.siglas} — {c.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div class="focused-field">
+              <label for="countryInput" data-i18n="prep.asst.countryLabel">País que representas</label>
+              <input type="text" id="countryInput" placeholder="Ej. Francia, Japón, Brasil…" data-i18n-ph="prep.asst.countryPh" autocomplete="off" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Chat window -->
+        <div class="chat-window">
+          <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+          <form class="chat-input-row" id="chatForm">
+            <input
+              type="text"
+              id="chatInput"
+              class="chat-input"
+              placeholder="Escribe tu pregunta..."
+              data-i18n-ph="prep.asst.inputPh"
+              autocomplete="off"
+            />
+            <button type="submit" class="chat-send" aria-label="Enviar mensaje" data-i18n-aria="prep.asst.sendAria">
+              <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────── Volver al inicio ───────── -->
+    <div class="prep-back-wrap">
+      <a href="/#comites" class="prep-back">
+        <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 1-.5.5H2.707l3.147 3.146a.5.5 0 0 1-.708.708l-4-4a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 7.5H14.5A.5.5 0 0 1 15 8z"/>
+        </svg>
+        <span data-i18n="prep.back">Volver a Comités</span>
+      </a>
+    </div>
+
+    </div><!-- /#prepContent -->
+
+  </main>
+</Layout>
+
+<script>
+  /* ───────────────────────────────────────────────
+     This page has no scroll-storytelling hero (unlike
+     the homepage), so the navbar — which starts at
+     opacity:0 and is normally revealed by GloboHero's
+     scroll handler — needs to be shown immediately.
+  ─────────────────────────────────────────────── */
+  const navbar = document.getElementById('navbar');
+  if (navbar) {
+    navbar.style.opacity = '1';
+    navbar.style.transform = 'none';
+    navbar.style.pointerEvents = 'auto';
+  }
+
+  /* ───────────────────────────────────────────────
+     Acceso — pantalla de selección de perfil + PIN
+     de mesa directiva (código fijo: 1234)
+  ─────────────────────────────────────────────── */
+  type Track = 'delegate' | 'mesa' | null;
+
+  const MESA_PIN = '1234';
+
+  const accessGate       = document.getElementById('accessGate') as HTMLElement | null;
+  const prepContent      = document.getElementById('prepContent') as HTMLElement | null;
+  const accessDelegateBtn = document.getElementById('accessDelegateBtn') as HTMLButtonElement | null;
+  const accessMesaBtn     = document.getElementById('accessMesaBtn') as HTMLButtonElement | null;
+  const pinPanel  = document.getElementById('pinPanel') as HTMLElement | null;
+  const pinInput  = document.getElementById('pinInput') as HTMLInputElement | null;
+  const pinSubmitBtn = document.getElementById('pinSubmitBtn') as HTMLButtonElement | null;
+  const pinError  = document.getElementById('pinError') as HTMLElement | null;
+  const prepSwitchBtn = document.getElementById('prepSwitchBtn') as HTMLButtonElement | null;
+  const positionPaperSection = document.getElementById('position-paper') as HTMLElement | null;
+  const delegateChatControls = document.getElementById('delegateChatControls') as HTMLElement | null;
+
+  let track: Track = null;
+
+  function showGate() {
+    track = null;
+    if (prepContent) prepContent.hidden = true;
+    if (accessGate) accessGate.hidden = false;
+    if (pinPanel) pinPanel.hidden = true;
+    if (pinError) pinError.hidden = true;
+    if (pinInput) pinInput.value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function enterAsDelegate() {
+    track = 'delegate';
+    userHasChatted = false;
+    if (accessGate) accessGate.hidden = true;
+    if (prepContent) prepContent.hidden = false;
+    if (positionPaperSection) positionPaperSection.hidden = false;
+    if (delegateChatControls) delegateChatControls.hidden = false;
+    resetChat();
+    loadPdfPreview();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function enterAsMesa() {
+    track = 'mesa';
+    userHasChatted = false;
+    if (accessGate) accessGate.hidden = true;
+    if (prepContent) prepContent.hidden = false;
+    if (positionPaperSection) positionPaperSection.hidden = true;
+    if (delegateChatControls) delegateChatControls.hidden = true;
+    resetChat();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  accessDelegateBtn?.addEventListener('click', () => enterAsDelegate());
+
+  accessMesaBtn?.addEventListener('click', () => {
+    if (pinPanel) pinPanel.hidden = false;
+    if (pinError) pinError.hidden = true;
+    pinInput?.focus();
+  });
+
+  function checkPin() {
+    const value = (pinInput?.value ?? '').trim();
+    if (value === MESA_PIN) {
+      enterAsMesa();
+    } else {
+      if (pinError) pinError.hidden = false;
+      if (pinInput) {
+        pinInput.value = '';
+        pinInput.focus();
+      }
+    }
+  }
+  pinSubmitBtn?.addEventListener('click', checkPin);
+  pinInput?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      checkPin();
+    }
+  });
+  prepSwitchBtn?.addEventListener('click', () => showGate());
+
+  /* ───────────────────────────────────────────────
+     Asistente de Preparación — Gemini-powered chatbot
+  ─────────────────────────────────────────────── */
+  type Mode = 'quick' | 'focused';
+
+  const modeQuickBtn   = document.getElementById('modeQuickBtn') as HTMLButtonElement | null;
+  const modeFocusedBtn = document.getElementById('modeFocusedBtn') as HTMLButtonElement | null;
+  const focusedControls = document.getElementById('focusedControls') as HTMLElement | null;
+  const committeeSelect = document.getElementById('committeeSelect') as HTMLSelectElement | null;
+  const countryInput    = document.getElementById('countryInput') as HTMLInputElement | null;
+  const chatMessages    = document.getElementById('chatMessages') as HTMLElement | null;
+  const chatForm        = document.getElementById('chatForm') as HTMLFormElement | null;
+  const chatInput       = document.getElementById('chatInput') as HTMLInputElement | null;
+
+  let mode: Mode = 'quick';
+
+  const QUICK_PROMPT =
+    'You are an expert MUN coach for MUNBOLDT 2027 at Colegio Humboldt Puebla. ' +
+    'Help delegates understand how to write a position paper step by step. ' +
+    'Be clear, concise and encouraging. Respond in the same language the user writes in.';
+
+  const MESA_PROMPT =
+    'You are an expert MUN coach for MUNBOLDT 2027. Help this committee member create a ' +
+    'compelling background guide for their committee. Ask them which committee they are on ' +
+    'and guide them through researching and writing the background document.';
+
+  function focusedPrompt(): string {
+    const opt = committeeSelect?.selectedOptions?.[0] ?? null;
+    const committee = opt && opt.value
+      ? `${opt.dataset.nombre} (${opt.dataset.siglas})`
+      : 'su comité asignado';
+    const topic = opt && opt.dataset.tema
+      ? opt.dataset.tema
+      : 'un tema que será anunciado próximamente por la mesa directiva';
+    const country = (countryInput?.value ?? '').trim() || 'su país asignado';
+
+    return (
+      'You are an expert MUN coach for MUNBOLDT 2027 at Colegio Humboldt Puebla. ' +
+      `The delegate is representing ${country} in ${committee} which is discussing ${topic}. ` +
+      'Give specific position paper guidance based on this committee and topic. ' +
+      'Respond in the same language the user writes in.'
+    );
+  }
+
+  function setMode(next: Mode) {
+    mode = next;
+    modeQuickBtn?.classList.toggle('is-active', mode === 'quick');
+    modeFocusedBtn?.classList.toggle('is-active', mode === 'focused');
+    if (focusedControls) focusedControls.hidden = mode !== 'focused';
+  }
+  modeQuickBtn?.addEventListener('click', () => setMode('quick'));
+  modeFocusedBtn?.addEventListener('click', () => setMode('focused'));
+
+  function scrollToBottom() {
+    if (chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function appendMessage(role: 'user' | 'bot', text: string): HTMLElement {
+    const row = document.createElement('div');
+    row.className = `chat-row chat-row--${role}`;
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble chat-bubble--${role}`;
+    bubble.textContent = text;
+    row.appendChild(bubble);
+    chatMessages?.appendChild(row);
+    scrollToBottom();
+    return row;
+  }
+
+  function appendTyping(): HTMLElement {
+    const row = document.createElement('div');
+    row.className = 'chat-row chat-row--bot';
+    const typingAria = CHAT_STRINGS[currentChatLang()].typingAria;
+    row.innerHTML =
+      `<div class="chat-bubble chat-bubble--bot chat-typing" aria-label="${typingAria}">` +
+      '<span></span><span></span><span></span></div>';
+    chatMessages?.appendChild(row);
+    scrollToBottom();
+    return row;
+  }
+
+  /* ───────────────────────────────────────────────
+     Chatbot i18n — mirrors the language picked via
+     the navbar's ES / DE / EN switcher (persisted in
+     localStorage['munboldt-lang']). Drives the welcome
+     messages, error copy, and the "Always respond in
+     [LANGUAGE]" instruction appended to every system
+     prompt sent to /api/chat — so DE ⇒ German replies,
+     EN ⇒ English replies, ES ⇒ Spanish replies.
+  ─────────────────────────────────────────────── */
+  type ChatLang = 'es' | 'de' | 'en';
+
+  function currentChatLang(): ChatLang {
+    const saved = localStorage.getItem('munboldt-lang');
+    return saved === 'de' || saved === 'en' ? saved : 'es';
+  }
+
+  const CHAT_STRINGS: Record<ChatLang, {
+    welcomeDelegate: string;
+    welcomeMesa: string;
+    chatError: string;
+    typingAria: string;
+    previewError: string;
+    langName: string;
+  }> = {
+    es: {
+      welcomeDelegate:
+        'Hola, soy tu asistente de preparación para MUNBOLDT 2027. Puedo ayudarte a entender ' +
+        'cómo escribir tu position paper paso a paso — o, si activas "Preparación Enfocada", ' +
+        'darte orientación específica para tu comité, tema y país. ¿En qué te ayudo hoy?',
+      welcomeMesa:
+        'Hola, soy tu asistente para construir el background guide de tu comité en MUNBOLDT 2027. ' +
+        'Para empezar, cuéntame: ¿de qué comité eres mesa directiva (presidente, secretario o ' +
+        'moderador) y qué tema están trabajando?',
+      chatError:
+        'Hubo un problema al conectar con el asistente. Verifica tu conexión e intenta de nuevo en unos momentos.',
+      typingAria: 'El asistente está escribiendo',
+      previewError: 'No se pudo cargar la vista previa. Usa el botón "Descargar PDF" para verlo.',
+      langName: 'Spanish (Español)',
+    },
+    de: {
+      welcomeDelegate:
+        'Hallo, ich bin dein Vorbereitungsassistent für MUNBOLDT 2027. Ich zeige dir Schritt ' +
+        'für Schritt, wie man ein Position Paper schreibt — oder gebe dir, wenn du „Gezielte ' +
+        'Vorbereitung“ aktivierst, gezielte Hinweise zu deinem Komitee, Thema und Land. ' +
+        'Womit kann ich dir heute helfen?',
+      welcomeMesa:
+        'Hallo, ich bin dein Assistent für den Background Guide deines Komitees bei MUNBOLDT 2027. ' +
+        'Erzähl mir zum Einstieg: In welchem Komitee bist du Vorstandsmitglied (Vorsitzender, ' +
+        'Sekretär oder Moderator), und an welchem Thema arbeitet ihr gerade?',
+      chatError:
+        'Es gab ein Problem bei der Verbindung mit dem Assistenten. Überprüfe deine Verbindung und versuche es in Kürze erneut.',
+      typingAria: 'Der Assistent schreibt',
+      previewError: 'Die Vorschau konnte nicht geladen werden. Nutze die Schaltfläche „PDF herunterladen“, um sie zu sehen.',
+      langName: 'German (Deutsch)',
+    },
+    en: {
+      welcomeDelegate:
+        'Hi, I\'m your preparation assistant for MUNBOLDT 2027. I can help you understand how ' +
+        'to write your position paper step by step — or, if you turn on "Focused Preparation", ' +
+        'give you guidance specific to your committee, topic, and country. What can I help you with today?',
+      welcomeMesa:
+        'Hi, I\'m your assistant for building your committee\'s background guide at MUNBOLDT 2027. ' +
+        'To start, tell me: which committee are you on the board of (chair, secretary, or ' +
+        'moderator), and what topic are you working on?',
+      chatError:
+        'There was a problem connecting to the assistant. Check your connection and try again in a few moments.',
+      typingAria: 'The assistant is typing',
+      previewError: 'The preview could not be loaded. Use the "Download PDF" button to view it.',
+      langName: 'English',
+    },
+  };
+
+  // Clears the conversation and starts fresh with a track- AND
+  // language-appropriate welcome message
+  function resetChat() {
+    if (chatMessages) chatMessages.innerHTML = '';
+    const strings = CHAT_STRINGS[currentChatLang()];
+    appendMessage('bot', track === 'mesa' ? strings.welcomeMesa : strings.welcomeDelegate);
+  }
+
+  function currentSystemPrompt(): string {
+    const base =
+      track === 'mesa' ? MESA_PROMPT : mode === 'quick' ? QUICK_PROMPT : focusedPrompt();
+    const langName = CHAT_STRINGS[currentChatLang()].langName;
+    // Per spec: explicitly instruct the model to answer in the UI's selected
+    // language (ES → Spanish, DE → German, EN → English), overriding the
+    // base prompts' "respond in the user's language" default.
+    return `${base} Always respond in ${langName}.`;
+  }
+
+  // Re-render JS-rendered dynamic strings (right now: the welcome message)
+  // the instant the user switches language via the navbar — no reload needed.
+  // We only reset the conversation if the user hasn't chatted yet, so an
+  // active conversation is never wiped out from under them.
+  let userHasChatted = false;
+  window.addEventListener('munboldt:langchange', () => {
+    if (track && !userHasChatted) resetChat();
+  });
+
+  /* ───────────────────────────────────────────────
+     PDF.js — render the example position paper onto
+     a <canvas> instead of an <iframe> (many browsers
+     block/limit inline PDF rendering in iframes).
+  ─────────────────────────────────────────────── */
+  const PDFJS_VERSION = '3.11.174';
+  const PDFJS_BASE = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}`;
+  let pdfPreviewRequested = false;
+
+  function loadScriptOnce(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src="${src}"]`);
+      if (existing) {
+        resolve();
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`No se pudo cargar ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadPdfPreview() {
+    if (pdfPreviewRequested) return;
+    pdfPreviewRequested = true;
+
+    const canvas = document.getElementById('pdfCanvas') as HTMLCanvasElement | null;
+    const note = document.getElementById('pdfCanvasNote') as HTMLElement | null;
+    if (!canvas) return;
+
+    try {
+      if (!(window as any).pdfjsLib) {
+        await loadScriptOnce(`${PDFJS_BASE}/pdf.min.js`);
+      }
+      const pdfjsLib = (window as any).pdfjsLib;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `${PDFJS_BASE}/pdf.worker.min.js`;
+
+      const pdf = await pdfjsLib.getDocument('/sample-position-paper.pdf').promise;
+      const page = await pdf.getPage(1);
+      const viewport = page.getViewport({ scale: 1.5 });
+
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('No se pudo obtener el contexto 2D del canvas.');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({ canvasContext: context, viewport }).promise;
+      if (note) note.hidden = true;
+    } catch (err) {
+      console.error('[Preparación] No se pudo renderizar el PDF con PDF.js:', err);
+      if (note) {
+        note.textContent = CHAT_STRINGS[currentChatLang()].previewError;
+      }
+    }
+  }
+
+  // The chatbot calls our own same-origin proxy at /api/chat (see
+  // src/pages/api/chat.ts) instead of the AI provider directly. That route
+  // is the ONLY server-rendered endpoint in this otherwise fully static site
+  // (`export const prerender = false`); it holds the API key server-side —
+  // in a non-PUBLIC_ env var that Vite never inlines into client code — and
+  // forwards just the prompt text. The key never reaches this script, never
+  // appears in the page source, and never travels to the browser at all.
+  const CHAT_PROXY_URL = '/api/chat';
+
+  async function askAssistant(userText: string) {
+    const systemPrompt = currentSystemPrompt();
+    const typingRow = appendTyping();
+
+    try {
+      const res = await fetch(CHAT_PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ systemPrompt, userText }),
+      });
+
+      const data = await res.json().catch(() => ({}) as { reply?: string; error?: string });
+      if (!res.ok) throw new Error(data?.error || `El asistente respondió ${res.status}`);
+
+      const reply: string =
+        data?.reply || 'No pude generar una respuesta esta vez. ¿Puedes reformular tu pregunta?';
+
+      typingRow.remove();
+      appendMessage('bot', reply);
+    } catch (err) {
+      console.error('[Asistente de Preparación] Error al consultar el asistente:', err);
+      typingRow.remove();
+      appendMessage('bot', CHAT_STRINGS[currentChatLang()].chatError);
+    }
+  }
+
+  chatForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = (chatInput?.value ?? '').trim();
+    if (!text || !chatInput) return;
+    chatInput.value = '';
+    userHasChatted = true;
+    appendMessage('user', text);
+    askAssistant(text);
+  });
+</script>
+
+<style>
+  .prep-page {
+    background: var(--white);
+    padding-top: 72px; /* offset for the fixed navbar */
+  }
+  .prep-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .prep-container--narrow {
+    max-width: 820px;
+  }
+
+  /* ── Hero / encabezado ── */
+  .prep-hero {
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+  }
+  .prep-eyebrow {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--un-blue);
+    margin-bottom: 0.85rem;
+  }
+  .prep-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.1rem, 4.5vw, 3rem);
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.2;
+    margin-bottom: 1.1rem;
+  }
+  .prep-intro {
+    max-width: 680px;
+    margin: 0 auto;
+    color: var(--text-muted);
+    font-size: 1rem;
+    line-height: 1.75;
+  }
+  .prep-intro em { color: var(--navy); font-style: italic; }
+  .prep-divider {
+    width: 56px;
+    height: 2px;
+    background: var(--gold);
+    margin: 2.25rem auto 0;
+  }
+
+  /* ── Access gate (landing screen) ── */
+  .access-gate {
+    padding: 6.5rem 2rem;
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+  .access-gate[hidden] { display: none; }
+  .access-gate .prep-container { width: 100%; }
+  .access-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 2.75rem;
+    text-align: left;
+  }
+  .access-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 2rem 1.75rem;
+    background: var(--white);
+    border: 1px solid var(--gray-mid);
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+  }
+  .access-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px rgba(26,58,92,0.1);
+  }
+  .access-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: var(--gold);
+  }
+  .access-card-icon svg { width: 22px; height: 22px; }
+  .access-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .access-card-desc {
+    font-size: 0.86rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  /* ── PIN panel (mesa directiva access) ── */
+  .pin-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--gray-bg);
+    border: 1px solid var(--gray-mid);
+    border-radius: 8px;
+    text-align: left;
+  }
+  .pin-panel label {
+    display: block;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 0.6rem;
+  }
+  .pin-row { display: flex; gap: 0.75rem; }
+  .pin-input {
+    width: 110px;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--gray-mid);
+    border-radius: 4px;
+    font-size: 1.1rem;
+    letter-spacing: 0.4em;
+    text-align: center;
+    color: var(--navy);
+    background: var(--white);
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    transition: border-color 0.25s;
+  }
+  .pin-input:focus { border-color: var(--gold); }
+  .pin-submit {
+    padding: 0.7rem 1.6rem;
+    border: none;
+    border-radius: 4px;
+    background: var(--navy);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.25s;
+    font-family: 'Inter', sans-serif;
+  }
+  .pin-submit:hover { background: var(--un-blue); }
+  .pin-error {
+    margin-top: 0.85rem;
+    font-size: 0.84rem;
+    color: #B33A3A;
+  }
+
+  /* ── Switch-profile link inside content header ── */
+  .prep-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--un-blue);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    padding: 0;
+    transition: color 0.2s, gap 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .prep-switch svg { width: 14px; height: 14px; }
+  .prep-switch:hover { color: var(--navy); gap: 0.7rem; }
+
+  /* ── Generic section scaffolding ── */
+  .prep-section { padding: 5rem 2rem; }
+  .prep-section--alt { background: var(--gray-bg); }
+  .prep-tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--un-blue);
+    margin-bottom: 0.75rem;
+  }
+  .prep-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.7rem, 3.4vw, 2.4rem);
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+  }
+  .prep-desc {
+    color: var(--text-muted);
+    max-width: 760px;
+    line-height: 1.75;
+    font-size: 0.97rem;
+    margin-bottom: 3rem;
+  }
+  .prep-desc em { color: var(--navy); font-style: italic; }
+
+  /* ── Position paper layout ── */
+  .pp-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 3.5rem;
+    align-items: start;
+  }
+  .pp-steps {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .pp-steps li {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .pp-step-num {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: var(--gold);
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pp-step-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
+  }
+  .pp-step-text {
+    font-size: 0.86rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .pp-pdf-col { display: flex; flex-direction: column; gap: 1rem; }
+  .pp-pdf-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  /* PDF.js canvas viewer — renders the first page directly to <canvas>,
+     avoiding the inline-PDF blocking some browsers apply to <iframe src="*.pdf">. */
+  .pdf-canvas-wrap {
+    width: 100%;
+    max-height: 60vh;
+    min-height: 380px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid var(--gray-mid);
+    border-radius: 6px;
+    background: var(--gray-bg);
+  }
+  .pdf-canvas {
+    max-width: 100%;
+    height: auto;
+    background: #fff;
+    border-radius: 2px;
+    box-shadow: 0 6px 22px rgba(26,58,92,0.12);
+  }
+  .pdf-canvas-note {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .pdf-canvas-note[hidden] { display: none; }
+  .pdf-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    align-self: flex-start;
+    background: var(--navy);
+    color: #fff;
+    padding: 0.8rem 1.6rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: background 0.25s, transform 0.25s;
+  }
+  .pdf-download svg { width: 15px; height: 15px; }
+  .pdf-download:hover { background: var(--un-blue); transform: translateY(-2px); }
+
+  /* ── Videos ── */
+  .videos-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+  .video-card { display: flex; flex-direction: column; }
+  .video-frame {
+    position: relative;
+    padding-bottom: 56.25%;
+    height: 0;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid var(--gray-mid);
+    background: #000;
+  }
+  .video-frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .video-title {
+    margin-top: 0.9rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  /* ── Mode toggle ── */
+  .mode-toggle {
+    display: inline-flex;
+    border: 1px solid var(--gray-mid);
+    border-radius: 999px;
+    padding: 0.3rem;
+    gap: 0.3rem;
+    margin-bottom: 1.75rem;
+  }
+  .mode-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+    font-family: 'Inter', sans-serif;
+  }
+  .mode-btn:hover { color: var(--navy); }
+  .mode-btn.is-active { background: var(--navy); color: #fff; }
+
+  /* ── Focused-mode controls ── */
+  .focused-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+    padding: 1.25rem;
+    background: var(--gray-bg);
+    border: 1px solid var(--gray-mid);
+    border-radius: 6px;
+  }
+  .focused-controls[hidden] { display: none; }
+  .focused-field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .focused-field label {
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--navy);
+  }
+  .focused-field input,
+  .focused-field select {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--gray-mid);
+    border-radius: 3px;
+    font-size: 0.88rem;
+    color: var(--text);
+    background: var(--white);
+    outline: none;
+    transition: border-color 0.25s;
+    font-family: 'Inter', sans-serif;
+  }
+  .focused-field input:focus,
+  .focused-field select:focus { border-color: var(--un-blue); }
+
+  /* ── Chat window ── */
+  .chat-window {
+    border: 1px solid var(--gray-mid);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+  }
+  .chat-messages {
+    height: 420px;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    background: var(--gray-bg);
+  }
+  /* NOTE: chat rows/bubbles are created client-side via document.createElement,
+     so they never receive Astro's scoped data-astro-cid-* attribute — these
+     selectors must be :global() or the styling below would never apply. */
+  :global(.chat-row) { display: flex; }
+  :global(.chat-row--user) { justify-content: flex-end; }
+  :global(.chat-row--bot) { justify-content: flex-start; }
+  :global(.chat-bubble) {
+    max-width: 78%;
+    padding: 0.75rem 1.05rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  :global(.chat-bubble--user) {
+    background: var(--navy);
+    color: #fff;
+    border-bottom-right-radius: 3px;
+  }
+  :global(.chat-bubble--bot) {
+    background: var(--white);
+    color: var(--text);
+    border: 1px solid var(--gray-mid);
+    border-bottom-left-radius: 3px;
+  }
+
+  /* Typing indicator — three animated dots */
+  :global(.chat-typing) {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 1rem 1.05rem;
+  }
+  :global(.chat-typing span) {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    animation: chatTypingBounce 1.2s infinite ease-in-out;
+  }
+  :global(.chat-typing span:nth-child(2)) { animation-delay: 0.15s; }
+  :global(.chat-typing span:nth-child(3)) { animation-delay: 0.3s; }
+  @keyframes chatTypingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+
+  /* Input row */
+  .chat-input-row {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--gray-mid);
+    background: var(--white);
+  }
+  .chat-input {
+    flex: 1;
+    padding: 0.8rem 1.1rem;
+    border: 1px solid var(--gray-mid);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--gray-bg);
+    outline: none;
+    transition: border-color 0.25s, background 0.25s;
+    font-family: 'Inter', sans-serif;
+  }
+  .chat-input:focus { border-color: var(--un-blue); background: var(--white); }
+  .chat-input::placeholder { color: #9CA3AF; }
+  .chat-send {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gold);
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.25s, transform 0.2s;
+  }
+  .chat-send svg { width: 17px; height: 17px; }
+  .chat-send:hover { background: #cdbf85; transform: translateY(-1px); }
+  .chat-send:active { transform: translateY(0); }
+
+  /* ── Back link ── */
+  .prep-back-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 0 2rem 5rem;
+  }
+  .prep-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--un-blue);
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color 0.2s, gap 0.2s;
+  }
+  .prep-back svg { width: 15px; height: 15px; }
+  .prep-back:hover { color: var(--navy); gap: 0.85rem; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .pp-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+    .videos-grid { grid-template-columns: 1fr; }
+    .access-options { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .prep-hero { padding: 4rem 1.25rem 2.5rem; }
+    .prep-section { padding: 3.5rem 1.25rem; }
+    .access-gate { padding: 5rem 1.25rem; }
+    .pin-row { flex-direction: column; align-items: stretch; }
+    .pin-input { width: 100%; }
+    .focused-controls { grid-template-columns: 1fr; }
+    .chat-bubble { max-width: 88%; }
+    .mode-toggle { flex-direction: column; border-radius: 12px; width: 100%; }
+    .mode-btn { border-radius: 8px; }
+  }
+</style>

@@ -1,0 +1,447 @@
+---
+---
+
+<section class="globe-hero" id="inicio">
+  <div class="hero-sticky">
+
+    <!-- Globo Three.js -->
+    <div class="globe-stage" id="globe-container">
+      <canvas id="globe-canvas"></canvas>
+    </div>
+
+    <!-- Texto editorial -->
+    <div class="hero-copy">
+      <h1 class="hero-title">
+        <span class="word-main" data-reveal="title">MUNBOLDT</span>
+        <span class="word-year" data-reveal="year">2027</span>
+      </h1>
+      <p class="hero-tagline" data-reveal="year" data-i18n="hero.tagline">Construyendo puentes, no muros</p>
+      <span class="hero-eyebrow" data-reveal="year">Colegio Humboldt Puebla</span>
+      <div class="hero-divider" data-reveal="year"></div>
+      <p class="hero-sub" data-reveal="year" data-i18n="hero.subtitle">Modelo de Naciones Unidas — Edición 2027</p>
+      <a href="#comites" class="hero-cta" data-reveal="cta" data-i18n="hero.cta">Explorar Comités</a>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .globe-hero {
+    position: relative;
+    height: 200vh;
+    background: var(--white);
+  }
+  .hero-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    width: 100%;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+  .hero-sticky::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--gray-mid);
+    z-index: 3;
+  }
+
+  /* ── Globe stage (centered, shifts right + scales as you scroll) ──
+     No clipping mask — the globe (and its atmosphere/rings, which extend
+     beyond the sphere itself) must float freely on the white background
+     without being cut off by a circular container. */
+  .globe-stage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: min(620px, 64vw);
+    height: min(620px, 64vw);
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+  #globe-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Editorial copy — 2rem rhythm between every block ── */
+  .hero-copy {
+    position: relative;
+    z-index: 2;
+    padding: 0 3rem 0 6rem;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  .hero-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    display: block;
+    opacity: 0;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2em;
+  }
+  .word-main {
+    color: var(--navy);
+    opacity: 0;
+  }
+  .word-year {
+    color: var(--gold);
+    opacity: 0;
+  }
+  .hero-tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(1.4rem, 2.2vw, 1.8rem);
+    color: var(--navy);
+    line-height: 1.5;
+    opacity: 0;
+  }
+  .hero-divider {
+    width: 40px;
+    height: 2px;
+    background: var(--gold);
+    opacity: 0;
+  }
+  .hero-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+  }
+  .hero-cta {
+    display: inline-block;
+    background: var(--navy);
+    color: #fff;
+    padding: 0.85rem 2.25rem;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transition: background 0.25s, transform 0.25s;
+    align-self: flex-start;
+    /* Revealed late in the scroll sequence — see `ctaProgress` below */
+    opacity: 0;
+  }
+  .hero-cta:hover {
+    background: var(--un-blue);
+    transform: translateY(-2px);
+  }
+
+  /* ── Responsive: disable scroll-jacking, show static hero ── */
+  @media (max-width: 900px) {
+    .globe-hero { height: auto; }
+    .hero-sticky {
+      position: relative;
+      height: auto;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 6.5rem 0 2.5rem;
+      overflow: visible;
+    }
+    .globe-stage {
+      position: relative;
+      top: auto;
+      left: auto;
+      width: min(420px, 78vw);
+      height: min(420px, 78vw);
+      margin: 0 auto 2rem;
+      transform: none !important;
+      opacity: 1 !important;
+    }
+    .hero-copy {
+      position: relative;
+      padding: 0 2rem;
+      max-width: 100%;
+    }
+    .hero-eyebrow,
+    .word-main,
+    .word-year,
+    .hero-tagline,
+    .hero-divider,
+    .hero-sub,
+    .hero-cta {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+  @media (max-width: 480px) {
+    .hero-copy { padding: 0 1.5rem; }
+    .hero-title { font-size: 2.6rem; }
+  }
+</style>
+
+<script>
+  import * as THREE from 'three';
+
+  const container = document.getElementById('globe-container') as HTMLElement;
+  const canvas = document.getElementById('globe-canvas') as HTMLCanvasElement;
+  if (!container || !canvas) throw new Error('Globe elements not found');
+
+  let renderer: THREE.WebGLRenderer;
+  let camera: THREE.PerspectiveCamera;
+  let scene: THREE.Scene;
+  let earth: THREE.Mesh;
+  let ring1: THREE.Mesh, ring2: THREE.Mesh, ring3: THREE.Mesh;
+  let raf: number;
+
+  function buildScene(w: number, h: number) {
+    // Renderer
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+
+    // Scene & camera
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
+    camera.position.set(0, 0.4, 6.2);
+
+    // Lights
+    const ambient = new THREE.AmbientLight(0xffffff, 0.65);
+    scene.add(ambient);
+    const sun = new THREE.DirectionalLight(0xfff5e0, 1.7);
+    sun.position.set(5, 3, 4);
+    scene.add(sun);
+    const fill = new THREE.DirectionalLight(0x3399ff, 0.25);
+    fill.position.set(-4, -2, -2);
+    scene.add(fill);
+
+    // Earth sphere — fallback navy color shows until the day texture loads.
+    // Day map ONLY (no emissive / night map) so the globe always reads as
+    // "Earth lit by the sun" rather than a glowing night-side render.
+    const earthGeo = new THREE.SphereGeometry(2, 72, 72);
+    const earthMat = new THREE.MeshPhongMaterial({
+      color: 0x1a4480,
+      shininess: 10,
+      specular: new THREE.Color(0x224466),
+      emissive: 0x000000,
+      emissiveIntensity: 0,
+    });
+    earth = new THREE.Mesh(earthGeo, earthMat);
+    scene.add(earth);
+
+    // Load the real Earth day texture (continents must be visible, clean —
+    // no overlay grid on top of it)
+    new THREE.TextureLoader().load(
+      '/earth-blue-marble.jpg',
+      (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        const mat = earth.material as THREE.MeshPhongMaterial;
+        mat.map = tex;
+        mat.color.set(0xffffff);
+        mat.shininess = 6;
+        mat.needsUpdate = true;
+      },
+      undefined,
+      (err) => { console.error('[GloboHero] Failed to load earth texture:', err); }
+    );
+
+    // ── Atmospheric glow — two soft layered shells (inner UN-blue tint,
+    // outer near-white halo) to mimic Earth's atmosphere seen from space.
+    const atmInner = new THREE.MeshPhongMaterial({
+      color: 0x9fd4f5,
+      transparent: true,
+      opacity: 0.10,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(2.12, 64, 64), atmInner));
+
+    const atmOuter = new THREE.MeshBasicMaterial({
+      color: 0xf3f9fd,
+      transparent: true,
+      opacity: 0.05,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(2.32, 64, 64), atmOuter));
+
+    // Golden orbital rings — soft translucent halo lines (not solid bands)
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xb8a96a,
+      transparent: true,
+      opacity: 0.2,
+      depthWrite: false,
+    });
+    const makeRing = (r: number, thickness: number, tiltX: number, tiltY: number) => {
+      const m = new THREE.Mesh(
+        new THREE.TorusGeometry(r, thickness, 16, 180),
+        ringMat
+      );
+      m.rotation.x = tiltX;
+      m.rotation.y = tiltY;
+      return m;
+    };
+    ring1 = makeRing(2.9, 0.022, Math.PI / 2.8, 0.2);
+    ring2 = makeRing(3.2, 0.018, -Math.PI / 3.5, 0.8);
+    ring3 = makeRing(2.65, 0.014, Math.PI / 6, -0.4);
+    scene.add(ring1, ring2, ring3);
+  }
+
+  function animate() {
+    raf = requestAnimationFrame(animate);
+    // Earth spins on its axis
+    earth.rotation.y += 0.0025;
+    // Every ring rotates on its own combination of axes so the orbital motion
+    // is clearly visible from the camera — not just a single static axis each
+    ring1.rotation.z += 0.003;
+    ring1.rotation.x += 0.0008;
+    ring2.rotation.x += 0.002;
+    ring2.rotation.y += 0.0015;
+    ring2.rotation.z -= 0.0022;
+    ring3.rotation.x += 0.0018;
+    ring3.rotation.z += 0.0012;
+    renderer.render(scene, camera);
+  }
+
+  // Dispose any previous instance of this hero before starting a new one.
+  // (Astro/Vite can re-execute this module — e.g. on HMR or client-side
+  // navigation — and an orphaned render loop + ResizeObserver from a stale
+  // instance would otherwise keep running invisibly and fight the new one,
+  // which is exactly what made the rings appear "frozen" mid-session.)
+  const INSTANCE_KEY = '__munboldtGlobeHero';
+  const w = window as unknown as Record<string, { dispose: () => void } | undefined>;
+  w[INSTANCE_KEY]?.dispose();
+
+  let ro: ResizeObserver;
+
+  // Init with ResizeObserver for correct dimensions
+  ro = new ResizeObserver((entries) => {
+    const { width, height } = entries[0].contentRect;
+    if (width < 10 || height < 10) return;
+    if (!renderer) {
+      buildScene(width, height);
+      animate();
+    } else {
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    }
+  });
+  ro.observe(container);
+
+  w[INSTANCE_KEY] = {
+    dispose() {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect();
+      renderer?.dispose();
+    },
+  };
+
+  /* ───────────────────────────────────────────────
+     Scroll storytelling — Apple-style scroll-scrub.
+     The hero is 200vh tall and pinned via `position:
+     sticky`. As the user scrolls through that range we
+     compute a 0→1 progress value and drive every reveal
+     stage + the globe's position/scale directly off it:
+
+       0%   → only the globe (30% larger), centered, full screen, navbar hidden
+       33%  → globe glides right & settles to its resting scale ·
+              "MUNBOLDT" fades in from the left · navbar fades in
+       66%  → "2027" (gold), tagline, eyebrow, divider & sub-line appear
+       70-85% → "Explorar Comités" button fades in last
+       100% → globe fades out
+  ─────────────────────────────────────────────── */
+  const heroEl = document.querySelector('.globe-hero') as HTMLElement | null;
+  const navbarEl = document.getElementById('navbar') as HTMLElement | null;
+  const globeStage = document.getElementById('globe-container') as HTMLElement | null;
+
+  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+  const ease = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
+
+  function reveal(stage: string, value: number, slide: 'left' | 'up') {
+    document.querySelectorAll<HTMLElement>(`[data-reveal="${stage}"]`).forEach((el) => {
+      el.style.opacity = String(value);
+      el.style.transform = slide === 'left'
+        ? `translateX(${(1 - value) * -42}px)`
+        : `translateY(${(1 - value) * 16}px)`;
+    });
+  }
+
+  function isDesktop() { return window.innerWidth > 900; }
+
+  function updateHeroProgress() {
+    if (!heroEl) return;
+
+    if (!isDesktop()) {
+      // Static mobile hero — everything visible, navbar always shown,
+      // globe at its natural (un-scaled) resting size
+      reveal('title', 1, 'left');
+      reveal('year', 1, 'up');
+      if (navbarEl) {
+        navbarEl.style.opacity = '1';
+        navbarEl.style.transform = 'none';
+        navbarEl.style.pointerEvents = 'auto';
+      }
+      if (globeStage) { globeStage.style.opacity = '1'; globeStage.style.transform = 'none'; }
+      return;
+    }
+
+    const rect = heroEl.getBoundingClientRect();
+    const scrollRange = heroEl.offsetHeight - window.innerHeight;
+    const progress = scrollRange > 0 ? clamp(-rect.top / scrollRange, 0, 1) : 0;
+
+    // ── Stage 1 · ~33%: navbar fades in, globe slides right and settles
+    // from its oversized entrance scale down to its resting size, "MUNBOLDT" appears
+    const navProgress   = ease(progress, 0.10, 0.34);
+    const titleProgress = ease(progress, 0.18, 0.40);
+    const globeShift    = ease(progress, 0.18, 0.42);
+    const globeSettle   = ease(progress, 0.00, 0.30);
+
+    // ── Stage 2 · ~66%: "2027" + tagline + eyebrow + divider + sub-line
+    const yearProgress = ease(progress, 0.50, 0.72);
+
+    // ── Stage 3 · ~70-80%: "Explorar Comités" button fades in late, once
+    // the reader has absorbed the title/tagline/sub-line above it
+    const ctaProgress = ease(progress, 0.70, 0.85);
+
+    // ── Stage 4 · 100%: globe fades out
+    const globeFadeOut = ease(progress, 0.84, 1.0);
+
+    if (navbarEl) {
+      navbarEl.style.opacity = String(navProgress);
+      navbarEl.style.transform = `translateY(${(1 - navProgress) * -14}px)`;
+      navbarEl.style.pointerEvents = navProgress > 0.4 ? 'auto' : 'none';
+    }
+
+    reveal('title', titleProgress, 'left');
+    reveal('year', yearProgress, 'up');
+    reveal('cta', ctaProgress, 'up');
+
+    if (globeStage) {
+      const shiftVw = globeShift * 24; // glides from center toward the right
+      // Loads 30% larger (scale 1.3) and eases down to its resting size
+      // (scale 1.0) as the user begins scrolling — a soft "settle-in".
+      const scale = 1.3 - 0.3 * globeSettle;
+      globeStage.style.transform = `translate(calc(-50% + ${shiftVw}vw), -50%) scale(${scale})`;
+      globeStage.style.opacity = String(1 - globeFadeOut);
+    }
+  }
+
+  window.addEventListener('scroll', updateHeroProgress, { passive: true });
+  window.addEventListener('resize', updateHeroProgress);
+  updateHeroProgress();
+</script>
