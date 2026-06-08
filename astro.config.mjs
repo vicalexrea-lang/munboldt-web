@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 
 // https://astro.build/config
 export default defineConfig({
@@ -14,7 +14,15 @@ export default defineConfig({
   // (`export const prerender = false`), which proxies chatbot requests to
   // the AI provider so the API key stays on the server and is never sent
   // to the browser.
-  adapter: node({ mode: 'standalone' }),
+  //
+  // The Vercel adapter (rather than @astrojs/node) is required so Vercel's
+  // build can generate the routing manifest + serverless function for the
+  // on-demand /api/chat route — @astrojs/node's standalone server isn't
+  // something Vercel knows how to run, which is what caused the 404.
+  // It fully supports this static+on-demand hybrid mode (hybridOutput/
+  // staticOutput are both "stable" in @astrojs/vercel), so no `output`
+  // change is needed.
+  adapter: vercel(),
   vite: {
     plugins: [tailwindcss()]
   }
