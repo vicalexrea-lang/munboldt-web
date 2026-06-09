@@ -398,11 +398,13 @@
 
           // Place on equatorial circle, face radially outward
           mesh.position.set(
-            orbitR * Math.sin(angle),
+            orbitR * Math.cos(angle),
             0,
-            orbitR * Math.cos(angle)
+            orbitR * Math.sin(angle)
           );
-          mesh.rotation.y = -angle; // rotate so text faces away from centre
+          // -angle rotates to the right arc position; +PI/2 tilts the face
+          // outward so the front of each letter points away from globe centre
+          mesh.rotation.y = -angle + Math.PI / 2;
 
           letterGroup.add(mesh);
         });
@@ -420,7 +422,10 @@
     const gr = 2; // globe radius
     const ppx = gr * Math.cos(pinLat) * Math.cos(pinLon);
     const ppy = gr * Math.sin(pinLat);
-    const ppz = gr * Math.cos(pinLat) * Math.sin(pinLon);
+    // Negative z: Three.js SphereGeometry maps ~90°W to the +Z face (toward
+    // camera), so the correct formula for the western hemisphere is z = -r·cos·sin.
+    // Without the negative the pin lands on the opposite side of the globe (Asia).
+    const ppz = -gr * Math.cos(pinLat) * Math.sin(pinLon);
 
     const pinMat = new THREE.MeshPhongMaterial({
       color: 0xb8a96a,
