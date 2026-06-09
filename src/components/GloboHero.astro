@@ -90,7 +90,7 @@
     opacity: 0;
   }
   .hero-title {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-size: clamp(2.8rem, 5vw, 4.5rem);
     font-weight: 900;
     line-height: 0.95;
@@ -108,7 +108,7 @@
     opacity: 0;
   }
   .hero-tagline {
-    font-family: 'Playfair Display', serif;
+    font-family: 'DM Serif Display', serif;
     font-style: italic;
     font-weight: 600;
     font-size: clamp(1.4rem, 2.2vw, 1.8rem);
@@ -205,6 +205,7 @@
   let scene: THREE.Scene;
   let earth: THREE.Mesh;
   let ring1: THREE.Mesh, ring2: THREE.Mesh, ring3: THREE.Mesh;
+  let textBand: THREE.Mesh, pueblaPin: THREE.Mesh;
   let raf: number;
 
   function buildScene(w: number, h: number) {
@@ -222,12 +223,21 @@
     // Lights
     const ambient = new THREE.AmbientLight(0xffffff, 0.65);
     scene.add(ambient);
-    const sun = new THREE.DirectionalLight(0xfff5e0, 1.7);
+    const sun = new THREE.DirectionalLight(0xfff5e0, 2.0);
     sun.position.set(5, 3, 4);
     scene.add(sun);
-    const fill = new THREE.DirectionalLight(0x3399ff, 0.25);
+    const fill = new THREE.DirectionalLight(0x3399ff, 0.4);
     fill.position.set(-4, -2, -2);
     scene.add(fill);
+    // Atmospheric blue point light — sits near the globe centre for a soft
+    // inner-glow effect that reads as scattered light through the atmosphere
+    const atmPoint = new THREE.PointLight(0x4488ff, 0.8, 10);
+    scene.add(atmPoint);
+    // Gold rim light — placed behind and to the left so the globe's silhouette
+    // picks up a warm halo that separates it from the white background
+    const rimLight = new THREE.DirectionalLight(0xb8a96a, 0.3);
+    rimLight.position.set(-5, 0, -6);
+    scene.add(rimLight);
 
     // Earth sphere — fallback navy color shows until the day texture loads.
     // Day map ONLY (no emissive / night map) so the globe always reads as
@@ -264,7 +274,7 @@
     const atmInner = new THREE.MeshPhongMaterial({
       color: 0x9fd4f5,
       transparent: true,
-      opacity: 0.10,
+      opacity: 0.15,
       side: THREE.BackSide,
       depthWrite: false,
     });
@@ -278,6 +288,17 @@
       depthWrite: false,
     });
     scene.add(new THREE.Mesh(new THREE.SphereGeometry(2.32, 64, 64), atmOuter));
+
+    // Bloom shell — wide, very faint shell that softens the globe edge and
+    // adds perceived depth without obscuring the rings or text band
+    const bloomMat = new THREE.MeshBasicMaterial({
+      color: 0x9fd4f5,
+      transparent: true,
+      opacity: 0.04,
+      side: THREE.BackSide,
+      depthWrite: false,
+    });
+    scene.add(new THREE.Mesh(new THREE.SphereGeometry(3.0, 32, 32), bloomMat));
 
     // Golden orbital rings — soft translucent halo lines (not solid bands)
     const ringMat = new THREE.MeshBasicMaterial({
@@ -299,6 +320,66 @@
     ring2 = makeRing(3.2, 0.018, -Math.PI / 3.5, 0.8);
     ring3 = makeRing(2.65, 0.014, Math.PI / 6, -0.4);
     scene.add(ring1, ring2, ring3);
+
+    // ── Orbiting text band — canvas texture wrapped around an open cylinder
+    // that sits just outside the orbital rings at radius 3.05.  The text is
+    // drawn onto a wide canvas so it tiles cleanly around the full 360°.
+    const textCanvas = document.createElement('canvas');
+    textCanvas.width = 2048;
+    textCanvas.height = 64;
+    const tc = textCanvas.getContext('2d')!;
+    tc.clearRect(0, 0, 2048, 64);
+    tc.fillStyle = '#B8A96A';
+    tc.font = 'bold 40px "DM Serif Display", Georgia, serif';
+    tc.textAlign = 'center';
+    tc.textBaseline = 'middle';
+    tc.fillText('✦  MUNBOLDT 2027  ✦  MUNBOLDT 2027  ✦', 1024, 32);
+    const textTex = new THREE.CanvasTexture(textCanvas);
+    textBand = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.05, 3.05, 0.10, 180, 1, true),
+      new THREE.MeshBasicMaterial({
+        map: textTex,
+        transparent: true,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+        alphaTest: 0.01,
+      })
+    );
+    scene.add(textBand);
+
+    // ── Puebla, México pin — lat 19.0414 °N, lon -98.2063 °W
+    // Converted to sphere-surface XYZ using the standard geographic formula.
+    // The pin and its spike are children of `earth` so they rotate in lockstep
+    // with the texture — no manual sync needed.
+    const pinLat = 19.0414 * Math.PI / 180;
+    const pinLon = -98.2063 * Math.PI / 180;
+    const gr = 2; // globe radius
+    const ppx = gr * Math.cos(pinLat) * Math.cos(pinLon);
+    const ppy = gr * Math.sin(pinLat);
+    const ppz = gr * Math.cos(pinLat) * Math.sin(pinLon);
+
+    const pinMat = new THREE.MeshPhongMaterial({
+      color: 0xb8a96a,
+      emissive: new THREE.Color(0xb8a96a),
+      emissiveIntensity: 0.7,
+      shininess: 80,
+    });
+    // Glowing gold sphere at the pin location
+    pueblaPin = new THREE.Mesh(new THREE.SphereGeometry(0.02, 10, 10), pinMat);
+    pueblaPin.position.set(ppx, ppy, ppz);
+    earth.add(pueblaPin);
+
+    // Thin spike rising from the pin, aligned with the sphere's outward normal
+    const pinPos  = new THREE.Vector3(ppx, ppy, ppz);
+    const pinNorm = pinPos.clone().normalize();
+    const spikeLen = 0.18;
+    const spike = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.004, 0.004, spikeLen, 4),
+      pinMat
+    );
+    spike.position.copy(pinPos).addScaledVector(pinNorm, spikeLen * 0.5);
+    spike.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), pinNorm);
+    earth.add(spike);
   }
 
   function animate() {
@@ -314,6 +395,10 @@
     ring2.rotation.z -= 0.0022;
     ring3.rotation.x += 0.0018;
     ring3.rotation.z += 0.0012;
+    // Text band orbits at the same rate as the globe so it stays "attached"
+    textBand.rotation.y += 0.0025;
+    // Puebla pin pulses from 1× to 2× and back via a sine wave
+    pueblaPin.scale.setScalar(1.5 + 0.5 * Math.sin(Date.now() * 0.003));
     renderer.render(scene, camera);
   }
 
