@@ -374,11 +374,11 @@
           if (char === ' ') return; // angle slot reserved, no mesh for space
           const geo = new TextGeometry(char, {
             font,
-            size:           0.12,
-            depth:          0.04,
+            size:           0.25,
+            depth:          0.06,
             curveSegments:  12,
             bevelEnabled:   true,
-            bevelThickness: 0.008,
+            bevelThickness: 0.012,
             bevelSize:      0.005,
             bevelSegments:  5,
           });
@@ -393,7 +393,10 @@
             0
           );
 
-          const angle = i * (2 * Math.PI / total);
+          // Compress the full 360° distribution into a ~166° arc so all 13
+          // letter-slots cluster on the camera-facing (z>0) hemisphere,
+          // reading as a continuous word instead of scattered letters
+          const angle = (i * (2 * Math.PI / total)) * 0.5;
           const mesh  = new THREE.Mesh(geo, textMat);
 
           // Place on equatorial circle, face radially outward
@@ -464,8 +467,8 @@
     ring2.rotation.z -= 0.0022;
     ring3.rotation.x += 0.0018;
     ring3.rotation.z += 0.0012;
-    // 3D letter group orbits at the same rate as the globe
-    letterGroup.rotation.y += 0.0025;
+    // 3D letter group orbits in the same direction as the globe's spin
+    letterGroup.rotation.y -= 0.0025;
     // Puebla pin pulses from 1× to 2× and back via a sine wave
     pueblaPin.scale.setScalar(1.5 + 0.5 * Math.sin(Date.now() * 0.003));
     renderer.render(scene, camera);
