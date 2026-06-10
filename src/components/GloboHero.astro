@@ -395,8 +395,18 @@
 
           // Compress the full 360° distribution into a ~166° arc so all 13
           // letter-slots cluster on the camera-facing (z>0) hemisphere,
-          // reading as a continuous word instead of scattered letters
-          const angle = (i * (2 * Math.PI / total)) * 0.5;
+          // reading as a continuous word instead of scattered letters.
+          //
+          // The slot order is REVERSED (total-1-i instead of i): with the
+          // position/rotation formulas below, increasing angle moves a
+          // letter from the camera's right side toward its left side. Using
+          // `i` directly therefore placed "M" on the right and "7" on the
+          // left — the word read backwards ("7202 TDLOBNUM"). Reversing the
+          // index keeps every individual glyph correctly oriented (each
+          // letter's own face still reads normally) while putting "M" on
+          // the left and "7" on the right, so "MUNBOLDT 2027" reads
+          // correctly left-to-right.
+          const angle = ((total - 1 - i) * (2 * Math.PI / total)) * 0.5;
           const mesh  = new THREE.Mesh(geo, textMat);
 
           // Place on equatorial circle, face radially outward
