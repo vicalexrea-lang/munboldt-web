@@ -210,6 +210,40 @@
   let letterGroup: THREE.Group, pueblaPin: THREE.Mesh;
   let raf: number;
 
+  // ── Hero-letter orbit → banner state ────────────────────────────────
+  // Populated by the FontLoader callback below: each entry tracks a letter
+  // mesh plus the angle/radius it started its orbit at, so animate() can
+  // compute its current orbital position without a parent group.
+  const heroLetters: { mesh: THREE.Mesh; initAngle: number; orbitRadius: number; charIndex: number }[] = [];
+  // Accumulated orbital angle (radians), added to each letter's initAngle.
+  // Replaces letterGroup.rotation.y now that letters are detached from it.
+  let globalOrbitAngle = 0;
+  // Mirrors the `progress` value computed in updateHeroProgress() (0→1 over
+  // the hero's scroll range) so animate()'s RAF loop can read it.
+  let scrollProgress = 0;
+
+  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
+  const ease = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
+
+  // ── Banner layout for the detached "MUNBOLDT 2027" letters ───────────
+  // Indices follow "MUNBOLDT 2027" (13 chars): 0-7 = MUNBOLDT, 8 = space
+  // (no mesh, see FontLoader callback), 9-12 = 2027. Line 1 sits slightly
+  // above center, line 2 slightly below, both left-aligned in the scene.
+  const LETTER_SPACING = 0.20;
+  const BANNER_Z = 0.10;
+  function getBannerTarget(i: number): THREE.Vector3 {
+    if (i < 8) {
+      // Line 1: MUNBOLDT
+      return new THREE.Vector3(-1.05 + i * LETTER_SPACING, 0.30, BANNER_Z);
+    }
+    if (i === 8) {
+      // Space: no mesh ever uses this index, kept for completeness
+      return new THREE.Vector3(-5, 0, BANNER_Z);
+    }
+    // Line 2: 2027
+    return new THREE.Vector3(-1.05 + (i - 9) * LETTER_SPACING * 1.3, -0.05, BANNER_Z);
+  }
+
   function buildScene(w: number, h: number) {
     // Renderer
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -323,11 +357,13 @@
     ring3 = makeRing(2.65, 0.014, Math.PI / 6, -0.4);
     scene.add(ring1, ring2, ring3);
 
-    // ── 3D extruded letter ring — each character of "MUNBOLDT 2027" gets its
-    // own TextGeometry mesh placed on a circle at radius 3.5 (outside all
-    // orbital rings), oriented to face radially outward.  The group is added
-    // to the scene immediately (empty) so animate() can start rotating it;
-    // the FontLoader callback populates it once the typeface JSON arrives.
+    // ── 3D extruded letter ring (legacy group, kept empty) ────────────────
+    // Each character of "MUNBOLDT 2027" is placed on a circle at radius 3.5
+    // (outside all orbital rings), oriented to face radially outward — but is
+    // added directly to `scene` and tracked in `heroLetters` (see FontLoader
+    // callback below) so it can detach from its orbit and fly into the
+    // banner headline independently. This group stays empty; it's kept so
+    // nothing else that references `letterGroup` needs to change.
     letterGroup = new THREE.Group();
     scene.add(letterGroup);
 
@@ -419,7 +455,8 @@
           // outward so the front of each letter points away from globe centre
           mesh.rotation.y = -angle + Math.PI / 2;
 
-          letterGroup.add(mesh);
+          scene.add(mesh);
+          heroLetters.push({ mesh, initAngle: angle, orbitRadius: orbitR, charIndex: i });
         });
       },
       undefined,
@@ -477,8 +514,42 @@
     ring2.rotation.z -= 0.0022;
     ring3.rotation.x += 0.0018;
     ring3.rotation.z += 0.0012;
-    // 3D letter group orbits in the same direction as the globe's spin
-    letterGroup.rotation.y -= 0.0025;
+    // ── Orbit → banner transition ────────────────────────────────────
+    // The orbit decelerates to a stop over the first ~2/3 of the scroll
+    // range, then each letter eases from its orbital position into its
+    // slot in the "MUNBOLDT 2027" banner on the left.
+    //
+    // globalOrbitAngle accumulates +ORBIT_SPEED (not -ORBIT_SPEED) because
+    // worldAngle = initAngle + globalOrbitAngle must reproduce the exact
+    // motion of the previous `letterGroup.rotation.y -= 0.0025`: rotating a
+    // group by rotY maps a child's local angle to a world angle of
+    // (localAngle - rotY), so a -0.0025/frame group rotation is equivalent
+    // to worldAngle increasing by +0.0025/frame. Accumulating with `-=`
+    // here would reverse the orbit direction and the letter order verified
+    // in commit 29693bd.
+    const ORBIT_SPEED = 0.0025;
+    globalOrbitAngle += ORBIT_SPEED * (1 - Math.min(scrollProgress * 1.5, 1));
+
+    const rawT = clamp((scrollProgress - 0.05) / 0.75, 0, 1);
+    const bannerEase = rawT < 0.5 ? 2 * rawT * rawT : -1 + (4 - 2 * rawT) * rawT;
+
+    heroLetters.forEach(({ mesh, initAngle, orbitRadius, charIndex }) => {
+      const worldAngle = initAngle + globalOrbitAngle;
+      // Non-negated x/z — matches the verified-correct static formula above
+      // (orbitR*cos, orbitR*sin). Negating would flip the letters to the
+      // globe's far side and reverse their reading order.
+      const orbitPos = new THREE.Vector3(
+        orbitRadius * Math.cos(worldAngle),
+        0,
+        orbitRadius * Math.sin(worldAngle)
+      );
+      const bannerPos = getBannerTarget(charIndex);
+      mesh.position.lerpVectors(orbitPos, bannerPos, bannerEase);
+
+      const orbitRotY = -worldAngle + Math.PI / 2;
+      mesh.rotation.y = orbitRotY * (1 - bannerEase);
+    });
+
     // Puebla pin pulses from 1× to 2× and back via a sine wave
     pueblaPin.scale.setScalar(1.5 + 0.5 * Math.sin(Date.now() * 0.003));
     renderer.render(scene, camera);
@@ -535,9 +606,7 @@
   const heroEl = document.querySelector('.globe-hero') as HTMLElement | null;
   const navbarEl = document.getElementById('navbar') as HTMLElement | null;
   const globeStage = document.getElementById('globe-container') as HTMLElement | null;
-
-  const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
-  const ease = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
+  const heroTitleEl = document.querySelector('.hero-title') as HTMLElement | null;
 
   function reveal(stage: string, value: number, slide: 'left' | 'up') {
     document.querySelectorAll<HTMLElement>(`[data-reveal="${stage}"]`).forEach((el) => {
@@ -555,9 +624,12 @@
 
     if (!isDesktop()) {
       // Static mobile hero — everything visible, navbar always shown,
-      // globe at its natural (un-scaled) resting size
+      // globe at its natural (un-scaled) resting size. The 3D letters never
+      // leave their orbit (scrollProgress stays 0), so the flat title stays put.
+      scrollProgress = 0;
       reveal('title', 1, 'left');
       reveal('year', 1, 'up');
+      if (heroTitleEl) heroTitleEl.style.opacity = '1';
       if (navbarEl) {
         navbarEl.style.opacity = '1';
         navbarEl.style.transform = 'none';
@@ -570,6 +642,7 @@
     const rect = heroEl.getBoundingClientRect();
     const scrollRange = heroEl.offsetHeight - window.innerHeight;
     const progress = scrollRange > 0 ? clamp(-rect.top / scrollRange, 0, 1) : 0;
+    scrollProgress = progress;
 
     // ── Stage 1 · ~33%: navbar fades in, globe slides right and settles
     // from its oversized entrance scale down to its resting size, "MUNBOLDT" appears
@@ -597,6 +670,14 @@
     reveal('title', titleProgress, 'left');
     reveal('year', yearProgress, 'up');
     reveal('cta', ctaProgress, 'up');
+
+    // ── 3D banner takeover ── once the orbiting letters begin flying into
+    // the "MUNBOLDT 2027" banner (see animate()), hide the flat HTML title
+    // so the two don't overlap; it's only visible near the very top of the hero.
+    if (heroTitleEl) {
+      heroTitleEl.style.transition = 'opacity 0.3s';
+      heroTitleEl.style.opacity = progress < 0.1 ? '1' : '0';
+    }
 
     if (globeStage) {
       const shiftVw = globeShift * 24; // glides from center toward the right
