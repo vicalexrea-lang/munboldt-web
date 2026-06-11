@@ -209,6 +209,9 @@
   let ring1: THREE.Mesh, ring2: THREE.Mesh, ring3: THREE.Mesh;
   let letterGroup: THREE.Group, pueblaPin: THREE.Mesh;
   let raf: number;
+  // Procedural gold matcap used by the hero letters — created once the font
+  // (and thus the letter meshes) load, repainted each frame for the shimmer.
+  let goldMatcap: THREE.CanvasTexture | undefined;
 
   // ── Hero-letter orbit → banner state ────────────────────────────────
   // Populated by the FontLoader callback below: each entry tracks a letter
@@ -242,6 +245,77 @@
     }
     // Line 2: 2027
     return new THREE.Vector3(-1.05 + (i - 9) * LETTER_SPACING * 1.3, -0.05, BANNER_Z);
+  }
+
+  // ── Procedural gold matcap for the hero letters ──────────────────────
+  // Paints a circular "gold sphere" lighting map onto a canvas — no external
+  // image needed. `offsetX` (a fraction of `size`) shifts the key-light and
+  // secondary specular highlights horizontally, used by the shimmer
+  // animation in animate() to slide the highlight across the gold over time.
+  function paintGoldMatcap(ctx: CanvasRenderingContext2D, size: number, offsetX = 0) {
+    const h = size / 2;
+
+    ctx.clearRect(0, 0, size, size);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(h, h, h - 1, 0, Math.PI * 2);
+    ctx.clip();
+
+    // Base shadow
+    ctx.fillStyle = '#2A1500';
+    ctx.fillRect(0, 0, size, size);
+
+    // Main key-light gradient (top-left highlight → dark shadow)
+    const main = ctx.createRadialGradient(h * 0.62 + offsetX * size, h * 0.44, 0, h, h, h);
+    main.addColorStop(0.00, '#FFFCD5'); // hot specular (near white-gold)
+    main.addColorStop(0.07, '#FFE030'); // bright yellow-gold
+    main.addColorStop(0.20, '#D4930C'); // rich amber gold
+    main.addColorStop(0.40, '#A36900'); // deep mid-gold
+    main.addColorStop(0.62, '#5C3600'); // shadowed gold
+    main.addColorStop(0.84, '#2C1900'); // deep shadow
+    main.addColorStop(1.00, '#180C00'); // edge
+    ctx.fillStyle = main;
+    ctx.fillRect(0, 0, size, size);
+
+    // Warm fill bounce light from bottom-right
+    const fill = ctx.createRadialGradient(h * 1.7, h * 1.65, 0, h, h, h * 1.1);
+    fill.addColorStop(0.00, 'rgba(255, 150, 0, 0.60)');
+    fill.addColorStop(0.40, 'rgba(190,  95, 0, 0.25)');
+    fill.addColorStop(1.00, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, size, size);
+
+    // Warm rim light from right edge
+    const rim = ctx.createRadialGradient(size * 0.90, h * 0.75, 0, size * 0.80, h * 0.80, size * 0.55);
+    rim.addColorStop(0.00, 'rgba(255, 215, 70, 0.75)');
+    rim.addColorStop(0.35, 'rgba(200, 140,  0, 0.35)');
+    rim.addColorStop(1.00, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = rim;
+    ctx.fillRect(0, 0, size, size);
+
+    // Tight secondary specular
+    const sp = ctx.createRadialGradient(
+      h * 0.52 + offsetX * size, h * 0.38, 0,
+      h * 0.52 + offsetX * size, h * 0.38, h * 0.11
+    );
+    sp.addColorStop(0.00, 'rgba(255, 255, 250, 0.96)');
+    sp.addColorStop(0.55, 'rgba(255, 248, 200, 0.50)');
+    sp.addColorStop(1.00, 'rgba(255, 240, 150, 0)');
+    ctx.fillStyle = sp;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.restore();
+  }
+
+  function createGoldMatcap(size = 512): THREE.CanvasTexture {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    paintGoldMatcap(ctx, size, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
   }
 
   function buildScene(w: number, h: number) {
@@ -395,15 +469,23 @@
         const total  = label.length; // 13 — space keeps its angle slot
         const orbitR = 3.5;          // just outside the outermost ring (r 3.2)
 
-        // Metallic gold — MeshStandardMaterial with high metalness gives the
-        // bevelled edges sharp specular highlights as the group rotates
-        const textMat = new THREE.MeshStandardMaterial({
-          color:            0xB8960C,
-          metalness:        0.9,
-          roughness:        0.1,
-          emissive:         new THREE.Color(0xB8A96A),
-          emissiveIntensity: 0.3,
-          envMapIntensity:  1.0,
+        // Procedural gold matcap — bakes a fixed "polished gold sphere"
+        // lighting look into a runtime canvas texture (see
+        // paintGoldMatcap/createGoldMatcap above), so the letters read as
+        // gold from any angle independent of scene lights/environment maps.
+        // DoubleSide so the bevelled back faces also pick up the matcap as
+        // letters rotate during the orbit → banner transition.
+        //
+        // No `scale.x = -1` here: the glyph mirroring/reading-order issue
+        // fixed in commit 29693bd was a reversed letter SEQUENCE, not a
+        // per-glyph mirror, and it was fixed via the `(total-1-i)` angle
+        // index above — each letter's geometry is already unmirrored. Adding
+        // scale.x = -1 now would flip every glyph (and its bevel normals)
+        // and reintroduce that bug.
+        goldMatcap = createGoldMatcap(512);
+        const letterMaterial = new THREE.MeshMatcapMaterial({
+          matcap: goldMatcap,
+          side:   THREE.DoubleSide,
         });
 
         label.split('').forEach((char, i) => {
@@ -443,7 +525,7 @@
           // the left and "7" on the right, so "MUNBOLDT 2027" reads
           // correctly left-to-right.
           const angle = ((total - 1 - i) * (2 * Math.PI / total)) * 0.5;
-          const mesh  = new THREE.Mesh(geo, textMat);
+          const mesh  = new THREE.Mesh(geo, letterMaterial);
 
           // Place on equatorial circle, face radially outward
           mesh.position.set(
@@ -549,6 +631,20 @@
       const orbitRotY = -worldAngle + Math.PI / 2;
       mesh.rotation.y = orbitRotY * (1 - bannerEase);
     });
+
+    // ── Gold matcap shimmer ──────────────────────────────────────────
+    // MeshMatcapMaterial samples its matcap using a UV derived from the
+    // view-space surface normal (see three's meshmatcap fragment shader),
+    // not the texture's own UV/offset/repeat — so animating
+    // `goldMatcap.offset.x` would have no visual effect. Instead we repaint
+    // the canvas each frame with the key-light highlight shifted slightly,
+    // then flag the texture for re-upload.
+    if (goldMatcap) {
+      const shimmer = Math.sin(Date.now() * 0.00025) * 0.025;
+      const matcapCanvas = goldMatcap.image as HTMLCanvasElement;
+      paintGoldMatcap(matcapCanvas.getContext('2d')!, matcapCanvas.width, shimmer);
+      goldMatcap.needsUpdate = true;
+    }
 
     // Puebla pin pulses from 1× to 2× and back via a sine wave
     pueblaPin.scale.setScalar(1.5 + 0.5 * Math.sin(Date.now() * 0.003));
