@@ -1,0 +1,490 @@
+/* ===========================================================================
+   styles.css — Panel del comandante de ARTEMIS
+   UI HTML/CSS pura superpuesta al canvas del RTS.
+   ======================================================================== */
+
+:root {
+  --panel-bg: rgba(10, 14, 24, 0.88);
+  --panel-border: rgba(105, 165, 255, 0.25);
+  --accent: #7df9ff;
+  --accent-soft: rgba(125, 249, 255, 0.15);
+  --text: #dbe4ff;
+  --text-dim: #8b96b8;
+  --good: #70e000;
+  --warn: #ffd000;
+  --bad: #ff5d73;
+  --radius: 10px;
+  font-size: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #06060c;
+  color: var(--text);
+  font-family: 'Segoe UI', 'Helvetica Neue', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+#game-root {
+  position: fixed;
+  inset: 0;
+}
+
+#game-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  cursor: crosshair;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ------------------------------------------------------------ Barra superior */
+
+#topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, rgba(8, 12, 22, 0.96), rgba(8, 12, 22, 0.82));
+  border-bottom: 1px solid var(--panel-border);
+  backdrop-filter: blur(6px);
+  z-index: 20;
+}
+
+#topbar .brand {
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--accent);
+  margin-right: 8px;
+}
+
+.res-group {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.res-group .value {
+  font-weight: 700;
+  min-width: 38px;
+}
+
+.value.good { color: var(--good); }
+.value.warn { color: var(--warn); }
+.value.bad { color: var(--bad); }
+
+.rate {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.rate.good { color: var(--good); }
+.rate.bad { color: var(--bad); }
+
+#topbar .spacer { flex: 1; }
+
+.status-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.9rem;
+}
+
+.status-group .wave { color: var(--bad); font-weight: 600; }
+.status-group .clock { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+#active-effects {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  background: rgba(80, 30, 0, 0.8);
+  border: 1px solid var(--warn);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  color: var(--warn);
+  z-index: 20;
+}
+
+/* -------------------------------------------------------- Panel del comandante */
+
+#command-panel {
+  position: absolute;
+  top: 56px;
+  left: 12px;
+  width: 280px;
+  max-height: calc(100% - 220px);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  z-index: 15;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 9px 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab-btn:hover { color: var(--text); }
+
+.tab-btn.active {
+  color: var(--accent);
+  background: var(--accent-soft);
+  font-weight: 700;
+}
+
+.tab-panel {
+  overflow-y: auto;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Botones de construcción / tecnología */
+
+.build-btn,
+.tech-node {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.build-btn:hover,
+.tech-node.available:hover {
+  background: var(--accent-soft);
+  border-color: var(--panel-border);
+}
+
+.build-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.build-btn.unaffordable,
+.train-btn.unaffordable {
+  opacity: 0.45;
+}
+
+.btn-icon { font-size: 1.5rem; line-height: 1.2; }
+
+.btn-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.btn-name { font-weight: 700; font-size: 0.88rem; }
+.btn-desc { font-size: 0.75rem; color: var(--text-dim); }
+.btn-cost { font-size: 0.78rem; color: var(--warn); }
+
+.tech-node.researched {
+  border-color: rgba(112, 224, 0, 0.4);
+  background: rgba(112, 224, 0, 0.08);
+  cursor: default;
+}
+
+.tech-node.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tech-req { font-size: 0.72rem; color: var(--bad); }
+
+/* Tarjetas de gobierno */
+
+.gov-card {
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  border-radius: 8px;
+}
+
+.gov-card.current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.gov-card h3 { font-size: 0.95rem; margin-bottom: 4px; }
+.gov-card p { font-size: 0.78rem; color: var(--text-dim); margin-bottom: 6px; }
+
+.gov-card ul {
+  list-style: none;
+  font-size: 0.76rem;
+  margin-bottom: 4px;
+}
+
+.gov-pros li { color: var(--good); }
+.gov-cons li { color: var(--bad); }
+
+.gov-select-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 7px;
+  background: var(--accent-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gov-select-btn:hover:not(:disabled) { background: rgba(125, 249, 255, 0.3); }
+
+.gov-select-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------- Registro de eventos */
+
+#event-feed {
+  position: absolute;
+  top: 56px;
+  right: 12px;
+  width: 300px;
+  max-height: 38%;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  z-index: 15;
+}
+
+#event-feed h2 {
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--panel-border);
+  color: var(--accent);
+}
+
+#event-log {
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.log-entry { line-height: 1.35; }
+.log-time { color: var(--text-dim); font-variant-numeric: tabular-nums; margin-right: 4px; }
+.log-good { color: var(--good); }
+.log-warn { color: var(--warn); }
+.log-bad { color: var(--bad); }
+
+/* ----------------------------------------------------- Selección y minimapa */
+
+#bottom-bar {
+  position: absolute;
+  bottom: 36px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  pointer-events: none;
+  z-index: 15;
+}
+
+#selection-panel {
+  pointer-events: auto;
+  min-width: 340px;
+  max-width: 560px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+#selection-content h3 { margin-bottom: 4px; }
+#selection-content p { font-size: 0.82rem; margin-bottom: 4px; }
+
+.hint { color: var(--text-dim); font-size: 0.78rem; }
+
+.unit-chip {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin: 2px 4px 2px 0;
+  font-size: 0.78rem;
+}
+
+.train-row {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.train-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.train-btn:hover:not(:disabled) { background: var(--accent-soft); }
+.train-btn:disabled { cursor: not-allowed; }
+
+#minimap-wrap {
+  pointer-events: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 6px;
+  line-height: 0;
+}
+
+#minimap { cursor: pointer; border-radius: 6px; }
+
+/* --------------------------------------------------------------- Ayuda y pausa */
+
+#help-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 6px 14px;
+  background: rgba(8, 12, 22, 0.9);
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.74rem;
+  color: var(--text-dim);
+  text-align: center;
+  z-index: 18;
+}
+
+#pause-banner {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: var(--accent);
+  text-shadow: 0 0 24px rgba(125, 249, 255, 0.6);
+  z-index: 25;
+}
+
+/* ------------------------------------------------------------------- Overlays */
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 4, 10, 0.72);
+  backdrop-filter: blur(3px);
+  z-index: 40;
+}
+
+#modal-box,
+#gameover-box {
+  width: min(480px, 90vw);
+  background: var(--panel-bg);
+  border: 1px solid var(--accent);
+  border-radius: 14px;
+  padding: 26px;
+  text-align: center;
+  box-shadow: 0 0 48px rgba(125, 249, 255, 0.18);
+}
+
+#modal-icon { font-size: 3rem; margin-bottom: 8px; }
+
+#modal-title,
+#gameover-title {
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+
+#modal-text,
+#gameover-text {
+  color: var(--text-dim);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+
+#modal-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.modal-choice,
+#restart-btn {
+  padding: 11px 16px;
+  background: var(--accent-soft);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.modal-choice:hover:not(:disabled),
+#restart-btn:hover { background: rgba(125, 249, 255, 0.3); }
+
+.modal-choice:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- Scrollbars */
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(125, 249, 255, 0.2);
+  border-radius: 4px;
+}

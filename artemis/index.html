@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARTEMIS — Comando de Colonia Lunar</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="game-root">
+    <!-- Mapa RTS -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Barra superior: recursos y estado de la colonia -->
+    <header id="topbar">
+      <div class="brand">🌖 ARTEMIS</div>
+      <div class="res-group" title="Agua: extractores de hielo; la consume la población">
+        <span class="res-icon">💧</span>
+        <span id="res-water" class="value">0</span>
+        <span id="res-water-rate" class="rate">+0/s</span>
+      </div>
+      <div class="res-group" title="Comida: granjas hidropónicas; la consume la población">
+        <span class="res-icon">🌾</span>
+        <span id="res-food" class="value">0</span>
+        <span id="res-food-rate" class="rate">+0/s</span>
+      </div>
+      <div class="res-group" title="Créditos: moneda de construcción, reclutamiento e investigación">
+        <span class="res-icon">💰</span>
+        <span id="res-credits" class="value">0</span>
+        <span id="res-credits-rate" class="rate">+0/s</span>
+      </div>
+      <div class="res-group" title="Población / capacidad de hábitats">
+        <span class="res-icon">👥</span>
+        <span id="res-pop" class="value">0/0</span>
+      </div>
+      <div class="res-group" title="Moral: afecta a toda la producción">
+        <span class="res-icon">😊</span>
+        <span id="res-morale" class="value">0%</span>
+      </div>
+      <div class="spacer"></div>
+      <div class="status-group">
+        <span id="gov-label">🏳️ Consejo Provisional</span>
+        <span id="wave-timer" class="wave">—</span>
+        <span id="game-clock" class="clock">0:00</span>
+      </div>
+    </header>
+
+    <!-- Efectos temporales activos (tormentas, disturbios…) -->
+    <div id="active-effects" class="hidden"></div>
+
+    <!-- Panel del comandante: construcción / tecnología / gobierno -->
+    <aside id="command-panel">
+      <nav class="tabs">
+        <button class="tab-btn active" data-tab="build">🏗️ Construir</button>
+        <button class="tab-btn" data-tab="tech">🔬 Tecnología</button>
+        <button class="tab-btn" data-tab="gov">🏛️ Gobierno</button>
+      </nav>
+      <div id="tab-build" class="tab-panel">
+        <div id="build-buttons"></div>
+      </div>
+      <div id="tab-tech" class="tab-panel hidden">
+        <div id="tech-list"></div>
+      </div>
+      <div id="tab-gov" class="tab-panel hidden">
+        <div id="gov-list"></div>
+      </div>
+    </aside>
+
+    <!-- Registro de eventos -->
+    <aside id="event-feed">
+      <h2>📡 Comunicaciones</h2>
+      <div id="event-log"></div>
+    </aside>
+
+    <!-- Panel de selección + minimapa -->
+    <section id="bottom-bar">
+      <div id="selection-panel">
+        <div id="selection-content">
+          <p class="hint">Sin selección.</p>
+        </div>
+      </div>
+      <div id="minimap-wrap">
+        <canvas id="minimap" width="192" height="132"></canvas>
+      </div>
+    </section>
+
+    <!-- Ayuda de controles -->
+    <footer id="help-bar">
+      🖱️ Izq: seleccionar / arrastrar · Der: mover / atacar · <b>A</b>+Der: attack-move ·
+      <b>WASD/←↑↓→</b>: cámara (Q/←: izquierda) · <b>Shift</b>: encadenar construcción ·
+      <b>H</b>: ir a la base · <b>P</b>: pausa · <b>Esc</b>: cancelar
+    </footer>
+
+    <!-- Indicador de pausa -->
+    <div id="pause-banner" class="hidden">⏸️ PAUSA</div>
+
+    <!-- Modal de eventos con decisión -->
+    <div id="modal-layer" class="overlay hidden">
+      <div id="modal-box">
+        <div id="modal-icon">⚠️</div>
+        <h2 id="modal-title">Evento</h2>
+        <p id="modal-text"></p>
+        <div id="modal-choices"></div>
+      </div>
+    </div>
+
+    <!-- Fin de partida -->
+    <div id="gameover" class="overlay hidden">
+      <div id="gameover-box">
+        <h1 id="gameover-title">Fin de la partida</h1>
+        <p id="gameover-text"></p>
+        <button id="restart-btn">🔄 Reiniciar colonia</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
