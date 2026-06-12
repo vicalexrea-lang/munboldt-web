@@ -206,7 +206,7 @@
   let camera: THREE.PerspectiveCamera;
   let scene: THREE.Scene;
   let earth: THREE.Mesh;
-  let ring1: THREE.Mesh, ring2: THREE.Mesh, ring3: THREE.Mesh;
+  let ring1: THREE.Mesh, ring2: THREE.Mesh;
   let letterGroup: THREE.Group, pueblaPin: THREE.Mesh;
   let raf: number;
   // Procedural gold matcap used by the hero letters — created once the font
@@ -228,23 +228,32 @@
   const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
   const ease = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
 
+  // ── Diagonal tilt of the letter orbit ─────────────────────────────────
+  // The reference render shows the text band running diagonally (~22°),
+  // ascending left→right across the globe's face. That look is a screen-
+  // space ROLL of the orbit plane about the view (z) axis — not a tilt
+  // about the x-axis, which would render as a flat "∩" arch (the ring's
+  // ellipse bulging at the center with both ends level), not a diagonal.
+  // More negative TILT = steeper diagonal.
+  const TILT = -0.38; // ~22°
+  const cosTilt = Math.cos(TILT);
+  const sinTilt = Math.sin(TILT);
+
   // ── Banner layout for the detached "MUNBOLDT 2027" letters ───────────
   // Indices follow "MUNBOLDT 2027" (13 chars): 0-7 = MUNBOLDT, 8 = space
   // (no mesh, see FontLoader callback), 9-12 = 2027. Line 1 sits slightly
   // above center, line 2 slightly below, both left-aligned in the scene.
-  const LETTER_SPACING = 0.20;
-  const BANNER_Z = 0.10;
+  // Letters shrink to BANNER_SCALE during the transition so the larger
+  // orbit glyphs (size 0.42) fit the left panel at this spacing.
+  const BANNER_SCALE = 0.52;
   function getBannerTarget(i: number): THREE.Vector3 {
-    if (i < 8) {
-      // Line 1: MUNBOLDT
-      return new THREE.Vector3(-1.05 + i * LETTER_SPACING, 0.30, BANNER_Z);
-    }
-    if (i === 8) {
-      // Space: no mesh ever uses this index, kept for completeness
-      return new THREE.Vector3(-5, 0, BANNER_Z);
-    }
-    // Line 2: 2027
-    return new THREE.Vector3(-1.05 + (i - 9) * LETTER_SPACING * 1.3, -0.05, BANNER_Z);
+    const LS1 = 0.23;   // line-1 spacing (MUNBOLDT)
+    const LS2 = 0.30;   // line-2 spacing (2027, airier)
+    const START_X = -1.05;
+    const BZ = 0.15;
+    if (i < 8)  return new THREE.Vector3(START_X + i * LS1, 0.28, BZ);
+    if (i === 8) return new THREE.Vector3(-9, 0, BZ); // space: no mesh uses this
+    return new THREE.Vector3(START_X + (i - 9) * LS2, -0.07, BZ);
   }
 
   // ── Procedural gold matcap for the hero letters ──────────────────────
@@ -323,10 +332,14 @@
     renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0);
+    // Pure white backdrop matching the page background — the reference
+    // render floats the globe on white, no dark card behind it.
+    renderer.setClearColor(0xFFFFFF, 1);
+    renderer.sortObjects = true;
 
     // Scene & camera
     scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xFFFFFF);
     camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
     camera.position.set(0, 0.4, 6.2);
 
@@ -349,91 +362,181 @@
     rimLight.position.set(-5, 0, -6);
     scene.add(rimLight);
 
-    // Earth sphere — fallback navy color shows until the day texture loads.
-    // Day map ONLY (no emissive / night map) so the globe always reads as
-    // "Earth lit by the sun" rather than a glowing night-side render.
-    const earthGeo = new THREE.SphereGeometry(2, 72, 72);
-    const earthMat = new THREE.MeshPhongMaterial({
-      color: 0x1a4480,
-      shininess: 10,
-      specular: new THREE.Color(0x224466),
-      emissive: 0x000000,
-      emissiveIntensity: 0,
-    });
-    earth = new THREE.Mesh(earthGeo, earthMat);
-    scene.add(earth);
+    // ── Atmosphere fresnel shells ─────────────────────────────────────
+    // Two cyan rim-glow shells around the globe (radii relative to the
+    // globe's radius of 2: 1.08× and 1.20×). Added in this exact order —
+    // inner shell BEFORE the earth, outer shell AFTER — for stable
+    // transparency sorting.
+    //
+    // Blending deviates from the usual AdditiveBlending recipe because the
+    // backdrop is pure WHITE: additive output clamps to white and is
+    // literally invisible over a white background, so the glow is encoded
+    // in the ALPHA channel with normal blending instead. Both shells are
+    // BackSide so the visible fragments form an annulus between the globe's
+    // silhouette and the shell's edge; alpha is driven by -normal·view,
+    // which is maximal at the globe's limb and reaches exactly 0 at the
+    // shell's silhouette — a smooth fade-out with no hard edge ring.
+    const atmoVert = `
+      varying vec3 vNormal;
+      void main() {
+        vNormal = normalize(normalMatrix * normal);
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+      }
+    `;
 
-    // Load the real Earth day texture (continents must be visible, clean —
-    // no overlay grid on top of it)
-    new THREE.TextureLoader().load(
+    // Inner shell: tight, intense cyan band hugging the globe's edge.
+    // The alpha ramp maps the back-face normal's z across the visible
+    // annulus — with the camera 6.2 units from a 2.16 shell, perspective
+    // puts n·z ≈ -0.06 at the globe's limb (peak alpha) and n·z ≈ +0.35
+    // (= 2.16/6.2) at the shell's own silhouette (alpha exactly 0), so the
+    // glow fades out smoothly with no hard edge ring.
+    const atmoInner = new THREE.Mesh(
+      new THREE.SphereGeometry(2.16, 64, 64),
+      new THREE.ShaderMaterial({
+        vertexShader: atmoVert,
+        fragmentShader: `
+          varying vec3 vNormal;
+          void main() {
+            float d = dot(vNormal, vec3(0.0, 0.0, 1.0));
+            float i = pow(clamp((0.35 - d) / 0.41, 0.0, 1.0), 2.0);
+            gl_FragColor = vec4(0.10, 0.72, 1.00, i * 0.9);
+          }
+        `,
+        side: THREE.BackSide,
+        transparent: true,
+        depthWrite: false,
+      })
+    );
+    scene.add(atmoInner); // ← BEFORE the globe
+
+    // ── Earth sphere — day/night texture blend ────────────────────────
+    // A fixed sun direction lights one hemisphere with the day map and
+    // fades the opposite one into the night map (city lights, brightened
+    // ×1.8). vNormal carries the model rotation, so the terminator stays
+    // fixed in space while the surface spins beneath it. The camera never
+    // rotates, so view space ≈ world space for sunDir.
+    //
+    // No .colorSpace is set on either texture: raw ShaderMaterial output
+    // skips three's colorspace_fragment conversion, so sRGB texels must
+    // pass through unconverted to display correctly (tagging them SRGB
+    // would hardware-decode to linear and render washed out).
+    //
+    // /earth-night.jpg does NOT exist in public/ (despite the spec), and
+    // adding asset files is out of scope — so the night map streams from
+    // the same threejs.org host that already serves the letter font above.
+    const textureLoader = new THREE.TextureLoader();
+    const earthDay = textureLoader.load(
       '/earth-blue-marble.jpg',
-      (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        const mat = earth.material as THREE.MeshPhongMaterial;
-        mat.map = tex;
-        mat.color.set(0xffffff);
-        mat.shininess = 6;
-        mat.needsUpdate = true;
-      },
       undefined,
-      (err) => { console.error('[GloboHero] Failed to load earth texture:', err); }
+      undefined,
+      (err) => { console.error('[GloboHero] Failed to load day texture:', err); }
+    );
+    const earthNight = textureLoader.load(
+      'https://threejs.org/examples/textures/planets/earth_lights_2048.png',
+      undefined,
+      undefined,
+      (err) => { console.error('[GloboHero] Failed to load night texture:', err); }
     );
 
-    // ── Atmospheric glow — two soft layered shells (inner UN-blue tint,
-    // outer near-white halo) to mimic Earth's atmosphere seen from space.
-    const atmInner = new THREE.MeshPhongMaterial({
-      color: 0x9fd4f5,
-      transparent: true,
-      opacity: 0.15,
-      side: THREE.BackSide,
-      depthWrite: false,
+    const earthGeo = new THREE.SphereGeometry(2, 72, 72);
+    const earthMat = new THREE.ShaderMaterial({
+      uniforms: {
+        dayTex:   { value: earthDay },
+        nightTex: { value: earthNight },
+        sunDir:   { value: new THREE.Vector3(5, 3, 5).normalize() },
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        void main() {
+          vUv = uv;
+          vNormal = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D dayTex;
+        uniform sampler2D nightTex;
+        uniform vec3 sunDir;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        void main() {
+          float sun = dot(vNormal, sunDir);
+          float blend = smoothstep(-0.15, 0.40, sun);
+          // ×1.8 on the day map replaces the lighting boost the previous
+          // MeshPhongMaterial got from the scene lights (ambient 1.2 +
+          // directional 2.0) — a raw ShaderMaterial is unlit, and the
+          // blue-marble texture's raw texels render far too dark without it.
+          vec4 day   = texture2D(dayTex,   vUv) * 1.8;
+          vec4 night = texture2D(nightTex, vUv) * 1.8;
+          gl_FragColor = mix(night, day, blend);
+        }
+      `,
     });
-    scene.add(new THREE.Mesh(new THREE.SphereGeometry(2.12, 64, 64), atmInner));
+    earth = new THREE.Mesh(earthGeo, earthMat);
+    // 23.5° axial tilt. Euler order ZYX so the spin (rotation.y, applied
+    // first) happens about the globe's own axis and the tilt (rotation.z)
+    // then leans the whole spinning globe — with the default XYZ order the
+    // tilted pole would precess around the vertical instead.
+    earth.rotation.order = 'ZYX';
+    earth.rotation.z = 23.5 * Math.PI / 180;
+    scene.add(earth); // ← globe second
 
-    const atmOuter = new THREE.MeshBasicMaterial({
-      color: 0xf3f9fd,
-      transparent: true,
-      opacity: 0.05,
-      side: THREE.BackSide,
-      depthWrite: false,
-    });
-    scene.add(new THREE.Mesh(new THREE.SphereGeometry(2.32, 64, 64), atmOuter));
+    // Outer shell: wide, soft halo fading into the white background.
+    // BackSide (not FrontSide as a dark-background recipe would use): on
+    // white, a FrontSide fresnel peaks exactly at the shell's silhouette
+    // and cuts off there — a visible hard-edged circle. Same perspective-
+    // corrected alpha ramp as the inner shell: for the 2.40 shell seen
+    // from 6.2 units, n·z ≈ -0.25 at the globe's limb and ≈ +0.387
+    // (= 2.40/6.2) at the shell's silhouette.
+    const atmoOuter = new THREE.Mesh(
+      new THREE.SphereGeometry(2.40, 64, 64),
+      new THREE.ShaderMaterial({
+        vertexShader: atmoVert,
+        fragmentShader: `
+          varying vec3 vNormal;
+          void main() {
+            float d = dot(vNormal, vec3(0.0, 0.0, 1.0));
+            float i = pow(clamp((0.387 - d) / 0.641, 0.0, 1.0), 2.5);
+            gl_FragColor = vec4(0.08, 0.65, 1.00, i * 0.35);
+          }
+        `,
+        side: THREE.BackSide,
+        transparent: true,
+        depthWrite: false,
+      })
+    );
+    scene.add(atmoOuter); // ← AFTER the globe
 
-    // Bloom shell — wide, very faint shell that softens the globe edge and
-    // adds perceived depth without obscuring the rings or text band
-    const bloomMat = new THREE.MeshBasicMaterial({
-      color: 0x9fd4f5,
-      transparent: true,
-      opacity: 0.04,
-      side: THREE.BackSide,
-      depthWrite: false,
-    });
-    scene.add(new THREE.Mesh(new THREE.SphereGeometry(3.0, 32, 32), bloomMat));
-
-    // Golden orbital rings — soft translucent halo lines (not solid bands)
+    // ── Orbital rings — two thin beige great-circle lines crossing at
+    // very different angles, static, per the reference render. Radii are
+    // the reference proportions (1.44× / 1.48× globe radius) × radius 2.
     const ringMat = new THREE.MeshBasicMaterial({
-      color: 0xb8a96a,
+      color: 0xD4C8A0,
       transparent: true,
-      opacity: 0.2,
-      depthWrite: false,
+      opacity: 0.45,
+      side: THREE.DoubleSide,
     });
-    const makeRing = (r: number, thickness: number, tiltX: number, tiltY: number) => {
-      const m = new THREE.Mesh(
-        new THREE.TorusGeometry(r, thickness, 16, 180),
-        ringMat
-      );
-      m.rotation.x = tiltX;
-      m.rotation.y = tiltY;
-      return m;
-    };
-    ring1 = makeRing(2.9, 0.022, Math.PI / 2.8, 0.2);
-    ring2 = makeRing(3.2, 0.018, -Math.PI / 3.5, 0.8);
-    ring3 = makeRing(2.65, 0.014, Math.PI / 6, -0.4);
-    scene.add(ring1, ring2, ring3);
+
+    ring1 = new THREE.Mesh(
+      new THREE.TorusGeometry(2.88, 0.0056, 2, 120), ringMat
+    );
+    ring1.rotation.x = Math.PI / 2 + 0.15;
+    ring1.rotation.z = 0.08;
+    scene.add(ring1);
+
+    ring2 = new THREE.Mesh(
+      new THREE.TorusGeometry(2.96, 0.0044, 2, 120),
+      ringMat.clone()
+    );
+    (ring2.material as THREE.MeshBasicMaterial).opacity = 0.28;
+    ring2.rotation.x = Math.PI / 2 + 0.95;
+    ring2.rotation.z = 0.35;
+    scene.add(ring2);
 
     // ── 3D extruded letter ring (legacy group, kept empty) ────────────────
-    // Each character of "MUNBOLDT 2027" is placed on a circle at radius 3.5
-    // (outside all orbital rings), oriented to face radially outward — but is
+    // Each character of "MUNBOLDT 2027" is placed on a tilted circle at
+    // radius 2.4, oriented to face radially outward — but is
     // added directly to `scene` and tracked in `heroLetters` (see FontLoader
     // callback below) so it can detach from its orbit and fly into the
     // banner headline independently. This group stays empty; it's kept so
@@ -467,7 +570,7 @@
       (font) => {
         const label  = 'MUNBOLDT 2027';
         const total  = label.length; // 13 — space keeps its angle slot
-        const orbitR = 3.5;          // just outside the outermost ring (r 3.2)
+        const orbitR = 2.40;         // 1.20× globe radius — letters hug the globe per the reference render
 
         // Procedural gold matcap — bakes a fixed "polished gold sphere"
         // lighting look into a runtime canvas texture (see
@@ -492,12 +595,12 @@
           if (char === ' ') return; // angle slot reserved, no mesh for space
           const geo = new TextGeometry(char, {
             font,
-            size:           0.25,
-            depth:          0.06,
+            size:           0.42,
+            depth:          0.16,
             curveSegments:  12,
             bevelEnabled:   true,
-            bevelThickness: 0.012,
-            bevelSize:      0.005,
+            bevelThickness: 0.018,
+            bevelSize:      0.007,
             bevelSegments:  5,
           });
 
@@ -527,15 +630,21 @@
           const angle = ((total - 1 - i) * (2 * Math.PI / total)) * 0.5;
           const mesh  = new THREE.Mesh(geo, letterMaterial);
 
-          // Place on equatorial circle, face radially outward
-          mesh.position.set(
-            orbitR * Math.cos(angle),
-            0,
-            orbitR * Math.sin(angle)
-          );
+          // Place on the orbit circle rolled by TILT about the view axis
+          // (diagonal band, ascending left→right — see TILT above). The
+          // flat circle point (flatX, 0, flatZ) rolled by -TILT about z:
+          // x' = x·cos(-TILT) = x·cosTilt, y' = x·sin(-TILT) = -x·sinTilt.
+          const flatX = orbitR * Math.cos(angle);
+          const flatZ = orbitR * Math.sin(angle);
+          mesh.position.set(flatX * cosTilt, -flatX * sinTilt, flatZ);
+          // Euler order ZYX: yaw (rotation.y, applied first) faces the
+          // letter radially outward, then rotation.z rolls it with the
+          // tilted band so its baseline follows the diagonal.
+          mesh.rotation.order = 'ZYX';
           // -angle rotates to the right arc position; +PI/2 tilts the face
           // outward so the front of each letter points away from globe centre
           mesh.rotation.y = -angle + Math.PI / 2;
+          mesh.rotation.z = -TILT;
 
           scene.add(mesh);
           heroLetters.push({ mesh, initAngle: angle, orbitRadius: orbitR, charIndex: i });
@@ -585,17 +694,11 @@
 
   function animate() {
     raf = requestAnimationFrame(animate);
-    // Earth spins on its axis
+    // Earth spins on its axis (its 23.5° z-tilt is constant — ZYX Euler
+    // order means this y-spin stays about the globe's own tilted axis).
+    // The rings stay static: their two crossing angles are part of the
+    // reference composition, set once at creation.
     earth.rotation.y += 0.0025;
-    // Every ring rotates on its own combination of axes so the orbital motion
-    // is clearly visible from the camera — not just a single static axis each
-    ring1.rotation.z += 0.003;
-    ring1.rotation.x += 0.0008;
-    ring2.rotation.x += 0.002;
-    ring2.rotation.y += 0.0015;
-    ring2.rotation.z -= 0.0022;
-    ring3.rotation.x += 0.0018;
-    ring3.rotation.z += 0.0012;
     // ── Orbit → banner transition ────────────────────────────────────
     // The orbit decelerates to a stop over the first ~2/3 of the scroll
     // range, then each letter eases from its orbital position into its
@@ -617,19 +720,29 @@
 
     heroLetters.forEach(({ mesh, initAngle, orbitRadius, charIndex }) => {
       const worldAngle = initAngle + globalOrbitAngle;
-      // Non-negated x/z — matches the verified-correct static formula above
-      // (orbitR*cos, orbitR*sin). Negating would flip the letters to the
-      // globe's far side and reverse their reading order.
-      const orbitPos = new THREE.Vector3(
-        orbitRadius * Math.cos(worldAngle),
-        0,
-        orbitRadius * Math.sin(worldAngle)
-      );
+      // Non-negated x/z — matches the verified-correct static formula in
+      // the FontLoader callback (orbitR*cos, orbitR*sin). Negating would
+      // flip the letters to the globe's far side and reverse their reading
+      // order. The flat circle point is then rolled by -TILT about the
+      // view axis for the diagonal band (same roll as the static placement).
+      const flatX = orbitRadius * Math.cos(worldAngle);
+      const flatZ = orbitRadius * Math.sin(worldAngle);
+      const orbitPos = new THREE.Vector3(flatX * cosTilt, -flatX * sinTilt, flatZ);
       const bannerPos = getBannerTarget(charIndex);
       mesh.position.lerpVectors(orbitPos, bannerPos, bannerEase);
 
+      // Yaw and roll both ease to 0 so banner letters sit flat and level.
       const orbitRotY = -worldAngle + Math.PI / 2;
       mesh.rotation.y = orbitRotY * (1 - bannerEase);
+      mesh.rotation.z = -TILT * (1 - bannerEase);
+
+      // Shrink toward BANNER_SCALE so the size-0.42 orbit glyphs fit the
+      // banner spacing. Lerped from +1, not -1: this codebase never applied
+      // the scale.x = -1 "mirror fix" (the 29693bd reading-order fix was an
+      // angle-index reversal; glyph geometry was never mirrored), so a
+      // negative scale here would mirror every glyph.
+      const s = THREE.MathUtils.lerp(1.0, BANNER_SCALE, bannerEase);
+      mesh.scale.set(s, s, s);
     });
 
     // ── Gold matcap shimmer ──────────────────────────────────────────
