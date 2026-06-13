@@ -225,6 +225,24 @@
   // the hero's scroll range) so animate()'s RAF loop can read it.
   let scrollProgress = 0;
 
+  // ── Intro auto-scroll ────────────────────────────────────────────────
+  // Once the orbiting name has had a moment to read, the page scrolls
+  // itself down through the hero's scroll range. Because the whole hero is
+  // already driven off scroll position, this single programmatic glide
+  // flies the 3D letters into the banner, slides the globe right and
+  // reveals the editorial copy in one continuous, cinematic hand-off from
+  // the planet scene into the page — instead of the text spinning in place
+  // forever. It runs once, desktop-only, is skipped under
+  // prefers-reduced-motion, and cancels the instant the user takes over.
+  const AUTO_SCROLL_DELAY    = 2600;  // ms to let the name sweep/read first
+  const AUTO_SCROLL_DURATION = 2200;  // ms length of the glide itself
+  const AUTO_SCROLL_TARGET   = 0.82;  // fraction of hero scroll range to land on
+                                      // (banner fully formed at ~0.80; globe
+                                      // stays crisp — its fade starts at 0.84)
+  let autoScrollTimer = 0;
+  let autoScrollRaf = 0;
+  let autoScrollDone = false;
+
   const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
   const ease = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
 
@@ -234,8 +252,9 @@
   // space ROLL of the orbit plane about the view (z) axis — not a tilt
   // about the x-axis, which would render as a flat "∩" arch (the ring's
   // ellipse bulging at the center with both ends level), not a diagonal.
-  // More negative TILT = steeper diagonal.
-  const TILT = -0.38; // ~22°
+  // More negative TILT = steeper diagonal (band crosses the globe straighter,
+  // reading less like a pronounced arch).
+  const TILT = -0.52; // ~30°
   const cosTilt = Math.cos(TILT);
   const sinTilt = Math.sin(TILT);
 
@@ -463,11 +482,13 @@
         void main() {
           float sun = dot(vNormal, sunDir);
           float blend = smoothstep(-0.15, 0.40, sun);
-          // ×1.8 on the day map replaces the lighting boost the previous
+          // ×2.2 on the day map replaces the lighting boost the previous
           // MeshPhongMaterial got from the scene lights (ambient 1.2 +
           // directional 2.0) — a raw ShaderMaterial is unlit, and the
-          // blue-marble texture's raw texels render far too dark without it.
-          vec4 day   = texture2D(dayTex,   vUv) * 1.8;
+          // blue-marble texture's raw texels render too dark/dull without
+          // it (bumped from 1.8 so the lit hemisphere reads vivid like the
+          // reference). Night keeps its 1.8 so the dark side isn't blown out.
+          vec4 day   = texture2D(dayTex,   vUv) * 2.2;
           vec4 night = texture2D(nightTex, vUv) * 1.8;
           gl_FragColor = mix(night, day, blend);
         }
@@ -482,22 +503,24 @@
     earth.rotation.z = 23.5 * Math.PI / 180;
     scene.add(earth); // ← globe second
 
-    // Outer shell: wide, soft halo fading into the white background.
+    // Outer shell: soft halo fading into the white background. Radius
+    // pulled in to 2.28 (from 2.40) so the cyan halo reads narrower and
+    // more subtle, not a wide prominent ring.
     // BackSide (not FrontSide as a dark-background recipe would use): on
     // white, a FrontSide fresnel peaks exactly at the shell's silhouette
-    // and cuts off there — a visible hard-edged circle. Same perspective-
-    // corrected alpha ramp as the inner shell: for the 2.40 shell seen
-    // from 6.2 units, n·z ≈ -0.25 at the globe's limb and ≈ +0.387
-    // (= 2.40/6.2) at the shell's silhouette.
+    // and cuts off there — a visible hard-edged circle. Perspective-
+    // corrected alpha ramp: for the 2.28 shell seen from 6.2 units the
+    // silhouette sits at n·z ≈ +0.368 (= 2.28/6.2, alpha 0) and the globe's
+    // limb at n·z ≈ -0.15 (alpha ~1), so the glow fades out with no hard edge.
     const atmoOuter = new THREE.Mesh(
-      new THREE.SphereGeometry(2.40, 64, 64),
+      new THREE.SphereGeometry(2.28, 64, 64),
       new THREE.ShaderMaterial({
         vertexShader: atmoVert,
         fragmentShader: `
           varying vec3 vNormal;
           void main() {
             float d = dot(vNormal, vec3(0.0, 0.0, 1.0));
-            float i = pow(clamp((0.387 - d) / 0.641, 0.0, 1.0), 2.5);
+            float i = pow(clamp((0.368 - d) / 0.52, 0.0, 1.0), 2.5);
             gl_FragColor = vec4(0.08, 0.65, 1.00, i * 0.35);
           }
         `,
@@ -649,6 +672,11 @@
           scene.add(mesh);
           heroLetters.push({ mesh, initAngle: angle, orbitRadius: orbitR, charIndex: i });
         });
+
+        // Letters are on screen — arm the cinematic intro auto-scroll.
+        if (!autoScrollDone && !autoScrollTimer) {
+          autoScrollTimer = window.setTimeout(startIntroAutoScroll, AUTO_SCROLL_DELAY);
+        }
       },
       undefined,
       (err) => { console.error('[GloboHero] Failed to load font:', err); }
@@ -712,7 +740,10 @@
     // to worldAngle increasing by +0.0025/frame. Accumulating with `-=`
     // here would reverse the orbit direction and the letter order verified
     // in commit 29693bd.
-    const ORBIT_SPEED = 0.0025;
+    //
+    // Bumped 0.0025 → 0.008 so the name sweeps with more energy before the
+    // intro auto-scroll (below) decelerates it into the banner.
+    const ORBIT_SPEED = 0.008;
     globalOrbitAngle += ORBIT_SPEED * (1 - Math.min(scrollProgress * 1.5, 1));
 
     const rawT = clamp((scrollProgress - 0.05) / 0.75, 0, 1);
@@ -793,6 +824,7 @@
   w[INSTANCE_KEY] = {
     dispose() {
       if (raf) cancelAnimationFrame(raf);
+      cancelAutoScroll();
       ro.disconnect();
       renderer?.dispose();
     },
@@ -896,6 +928,56 @@
       globeStage.style.transform = `translate(calc(-50% + ${shiftVw}vw), -50%) scale(${scale})`;
       globeStage.style.opacity = String(1 - globeFadeOut);
     }
+  }
+
+  // ── Intro auto-scroll implementation ──────────────────────────────────
+  // Real user input cancels the glide immediately. A programmatic
+  // `window.scrollTo` only emits `scroll` events (never wheel/touch/key),
+  // so these listeners fire exclusively on genuine user intent — they
+  // never trip on the glide's own scrolling.
+  function onUserScrollIntent() { cancelAutoScroll(); }
+
+  function cancelAutoScroll() {
+    autoScrollDone = true;
+    if (autoScrollTimer) { clearTimeout(autoScrollTimer); autoScrollTimer = 0; }
+    if (autoScrollRaf)   { cancelAnimationFrame(autoScrollRaf); autoScrollRaf = 0; }
+    window.removeEventListener('wheel', onUserScrollIntent);
+    window.removeEventListener('touchstart', onUserScrollIntent);
+    window.removeEventListener('keydown', onUserScrollIntent);
+  }
+
+  function startIntroAutoScroll() {
+    autoScrollTimer = 0;
+    if (autoScrollDone || !heroEl || !isDesktop()) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.scrollY > 10) return; // user already moved — don't hijack
+
+    const scrollRange = heroEl.offsetHeight - window.innerHeight;
+    if (scrollRange <= 0) return;
+
+    const startY  = window.scrollY;
+    const targetY = scrollRange * AUTO_SCROLL_TARGET;
+    const t0 = performance.now();
+    // Cubic ease-in-out: soft launch out of the orbit, gentle landing on the banner
+    const easeIO = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+    window.addEventListener('wheel', onUserScrollIntent, { passive: true });
+    window.addEventListener('touchstart', onUserScrollIntent, { passive: true });
+    window.addEventListener('keydown', onUserScrollIntent);
+
+    const stepScroll = (now: number) => {
+      if (autoScrollDone) return;
+      const t = Math.min((now - t0) / AUTO_SCROLL_DURATION, 1);
+      window.scrollTo(0, startY + (targetY - startY) * easeIO(t));
+      updateHeroProgress(); // keep the scene in lock-step with the glide this frame
+      if (t < 1) {
+        autoScrollRaf = requestAnimationFrame(stepScroll);
+      } else {
+        autoScrollRaf = 0;
+        cancelAutoScroll(); // marks done + tears down listeners
+      }
+    };
+    autoScrollRaf = requestAnimationFrame(stepScroll);
   }
 
   window.addEventListener('scroll', updateHeroProgress, { passive: true });
