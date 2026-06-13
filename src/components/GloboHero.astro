@@ -15,7 +15,7 @@
         <span class="word-main" data-reveal="title">MUNBOLDT</span>
         <span class="word-year" data-reveal="year">2027</span>
       </h1>
-      <p class="hero-tagline" data-reveal="year" data-i18n="hero.tagline">Construyendo puentes, no muros</p>
+      <p class="hero-tagline" data-reveal="year" data-i18n="hero.tagline">Construyendo puentes, no muros.</p>
       <span class="hero-eyebrow" data-reveal="year">Colegio Humboldt Puebla</span>
       <div class="hero-divider" data-reveal="year"></div>
       <p class="hero-sub" data-reveal="year" data-i18n="hero.subtitle">Modelo de Naciones Unidas — Edición 2027</p>
@@ -746,33 +746,70 @@
     const ORBIT_SPEED = 0.008;
     globalOrbitAngle += ORBIT_SPEED * (1 - Math.min(scrollProgress * 1.5, 1));
 
-    const rawT = clamp((scrollProgress - 0.05) / 0.75, 0, 1);
-    const bannerEase = rawT < 0.5 ? 2 * rawT * rawT : -1 + (4 - 2 * rawT) * rawT;
+    heroLetters.forEach(({ mesh, initAngle, orbitRadius, charIndex }, i) => {
+      // ── Per-letter staggered ease ──────────────────────────────────
+      // Each letter peels off the orbit in sequence (M first at i=0,
+      // "7" last at i=11) rather than all at once. The timing is
+      // compressed relative to the literal spec (0.08 / 0.03 / 0.68):
+      // those values leave the last letters still mid-flight at
+      // scrollProgress 0.82 — exactly where the intro auto-scroll rests
+      // and just before the globe/letter fade begins (0.84) — so they'd
+      // fade out before ever landing. These values land every letter
+      // (ease→1) by ~0.78, so the full banner is settled and opaque at
+      // the auto-scroll's resting point.
+      const STAGGER_START = 0.06; // scrollProgress at which "M" starts moving
+      const STAGGER_STEP  = 0.02; // added delay per subsequent letter
+      const STAGGER_SPAN  = 0.50; // scroll distance each letter takes to travel
+      const staggerT = Math.max(0, Math.min(1,
+        (scrollProgress - STAGGER_START - i * STAGGER_STEP) / STAGGER_SPAN
+      ));
+      const ease = staggerT < 0.5
+        ? 2 * staggerT * staggerT
+        : -1 + (4 - 2 * staggerT) * staggerT;
 
-    heroLetters.forEach(({ mesh, initAngle, orbitRadius, charIndex }) => {
       const worldAngle = initAngle + globalOrbitAngle;
       // Non-negated x/z — matches the verified-correct static formula in
-      // the FontLoader callback (orbitR*cos, orbitR*sin). Negating would
-      // flip the letters to the globe's far side and reverse their reading
-      // order. The flat circle point is then rolled by -TILT about the
-      // view axis for the diagonal band (same roll as the static placement).
+      // the FontLoader callback (orbitR*cos, orbitR*sin). The flat circle
+      // point is rolled by -TILT about the view axis for the diagonal band.
       const flatX = orbitRadius * Math.cos(worldAngle);
       const flatZ = orbitRadius * Math.sin(worldAngle);
       const orbitPos = new THREE.Vector3(flatX * cosTilt, -flatX * sinTilt, flatZ);
       const bannerPos = getBannerTarget(charIndex);
-      mesh.position.lerpVectors(orbitPos, bannerPos, bannerEase);
 
-      // Yaw and roll both ease to 0 so banner letters sit flat and level.
+      // ── Quadratic Bézier arc, not a straight lerp ──────────────────
+      // A straight orbit→banner lerp cuts through the globe mesh. The
+      // control point sits well in FRONT of the globe (z = farthest
+      // endpoint + 2.2, always beyond the globe's front face at z≈2), so
+      // each letter swings out toward the camera first, then curves left
+      // into its banner slot — organic, with no globe penetration.
+      const ctrl = new THREE.Vector3(
+        orbitPos.x * 0.3 + bannerPos.x * 0.7,
+        orbitPos.y * 0.4,
+        Math.max(orbitPos.z, bannerPos.z) + 2.2
+      );
+      const u = ease, v = 1 - u;
+      mesh.position.set(
+        v*v*orbitPos.x + 2*v*u*ctrl.x + u*u*bannerPos.x,
+        v*v*orbitPos.y + 2*v*u*ctrl.y + u*u*bannerPos.y,
+        v*v*orbitPos.z + 2*v*u*ctrl.z + u*u*bannerPos.z
+      );
+
+      // ── Rotation: brief swing mid-arc, then settle flat ────────────
+      // sin(ease·π) peaks at the arc's midpoint and returns to 0 on
+      // landing, so the letter twists naturally in flight and ends level.
       const orbitRotY = -worldAngle + Math.PI / 2;
-      mesh.rotation.y = orbitRotY * (1 - bannerEase);
-      mesh.rotation.z = -TILT * (1 - bannerEase);
+      const swing = Math.sin(ease * Math.PI) * 0.5;
+      mesh.rotation.y = orbitRotY * (1 - ease) + swing * (1 - ease);
+      mesh.rotation.x = THREE.MathUtils.lerp(mesh.rotation.x, 0, ease * 0.15);
+      // Roll (diagonal-band tilt) also flattens out as the letter lands.
+      mesh.rotation.z = -TILT * (1 - ease);
 
       // Shrink toward BANNER_SCALE so the size-0.42 orbit glyphs fit the
       // banner spacing. Lerped from +1, not -1: this codebase never applied
       // the scale.x = -1 "mirror fix" (the 29693bd reading-order fix was an
       // angle-index reversal; glyph geometry was never mirrored), so a
       // negative scale here would mirror every glyph.
-      const s = THREE.MathUtils.lerp(1.0, BANNER_SCALE, bannerEase);
+      const s = THREE.MathUtils.lerp(1.0, BANNER_SCALE, ease);
       mesh.scale.set(s, s, s);
     });
 
